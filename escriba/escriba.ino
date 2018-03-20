@@ -14,17 +14,50 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *motor_base = AFMS.getMotor(1);
 Adafruit_DCMotor *motor_braco = AFMS.getMotor(2);
 
-int estado_menu;
-int volume;
-float carga;
+const String nome_robo = " MEGAZORD  v1.0 ";
 
-int DIREITA = 1;
-int ESQUERDA = 2;
-int CIMA = 3;
-int BAIXO = 4;
-int SELECIONA = 5;
+const int DIREITA = 1;
+const int ESQUERDA = 2;
+const int CIMA = 3;
+const int BAIXO = 4;
+const int SELECIONA = 5;
+
+const int T_MAX_MENU = 150;
+
+const int MOVIMENTOS = 3;
+
+int 	estado_menu;// Posicao na pilha do menu
+int 	estado_liga;// Posicao na pilha do menu 11
+int 	estado_motor;// Posicao na pilha de acoes do motor
+int 	tdt;		// Tempo de Trabalho (unidade de tempo para cada acao do robo)
+int 	potencia;	// Forca de Trabalho (aplicada no motor)
+bool	ligado;		// Informa se o robo esta funcionando;
+float 	carga;		// Tensão real da fonte
+unsigned long tempo;// Contador do tempo corrente
+unsigned long t_menu;// Contador de tempo do menu
+unsigned long t_liga;// Contador de tempo do menu 11
+unsigned long t_motor;// Contador de tempo do motor
+
+int pilha_motor_base[MOVIMENTOS] = {0,0,0};
+int pilha_motor_braco[MOVIMENTOS] = {0,1,-1};
+
 
 /* funcoes */
+
+void inicia() // Inicializa as vatiaveis
+{
+	estado_menu = 0;
+	t_menu = 0;
+	tdt = 3000;
+	ligado = false;
+	lcd.begin(16, 2);
+	AFMS.begin(); // create with the default frequency 1.6KHz
+}
+
+void atualiza () // Atualiza as constantes utilizadas
+{
+
+}
 
 int verifica_botao () // Identifica qual botao foi acionado
 {
@@ -56,23 +89,22 @@ int verifica_botao () // Identifica qual botao foi acionado
 	}
 }
 
-void init_menu() // Inicializa as vatiaveis do menu
-{
-	estado_menu = 0;
-	volume = 5;
-	lcd.begin(16, 2);
-}
-
 void menu() // Gerenciador do menu e suas opcoes
 {
-	int botao = verifica_botao();
+	int botao;
+	tempo = millis();
+	if ((tempo - t_menu) > T_MAX_MENU)
+	{
+		t_menu = tempo;
+		botao = verifica_botao();
+	}
 
 	if (estado_menu < 10)	// Nivel 1
 	{
 		if (estado_menu == 0)	// Mascara
 		{
 			lcd.setCursor(0,0);
-			lcd.print ("    MEGAZORD    ");
+			lcd.print (nome_robo);
 			lcd.setCursor(0,1);
 			lcd.print ("                ");
 
@@ -82,14 +114,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 3;
+				estado_menu = 9;
 			}
-			delay(200);
 		}
 		else if (estado_menu == 1)
 		{
 			lcd.setCursor(0,0);
-			lcd.print ("    MEGAZORD    ");
+			lcd.print (nome_robo);
 			lcd.setCursor(0,1);
 			lcd.print ("Iniciar         ");
 
@@ -103,35 +134,15 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == SELECIONA)
 			{
-				lcd.setCursor(1,1);
-				lcd.print ("Iniciando em");
-				for (int tempo=3; tempo>1; tempo--) {
-					lcd.setCursor(13,1);
-					lcd.print (tempo);
-				}
-				lcd.setCursor(0,1);
-				lcd.print ("Morfando ...    ");
-				estado_menu = 0;
-
-				// delay(5000); // Aqui entra a função que vai desenhar a palavra
-				motor_braco->setSpeed(150);
-				motor_braco->run(FORWARD);
-
-				delay(3000);
-
-				motor_braco->setSpeed(150);
-				motor_braco->run(BACKWARD);
-
-				delay(3000);
-
-				motor_braco->setSpeed(0);
+				estado_menu = 11;
+				t_liga = millis();
+				estado_liga = 0;
 			}
-			delay(200);
 		}
 		else if (estado_menu == 2)
 		{
 			lcd.setCursor(0,0);
-			lcd.print ("    MEGAZORD    ");
+			lcd.print (nome_robo);
 			lcd.setCursor(0,1);
 			lcd.print ("Configurar      ");
 
@@ -147,18 +158,17 @@ void menu() // Gerenciador do menu e suas opcoes
 			{
 				estado_menu = 21;
 			}
-			delay(200);
 		}
 		else if (estado_menu == 3)
 		{
 			lcd.setCursor(0,0);
-			lcd.print ("    MEGAZORD    ");
+			lcd.print (nome_robo);
 			lcd.setCursor(0,1);
 			lcd.print ("Informacoes     ");
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 4;
+				estado_menu = 9;
 			}
 			else if (botao == CIMA)
 			{
@@ -168,12 +178,11 @@ void menu() // Gerenciador do menu e suas opcoes
 			{
 				estado_menu = 31;
 			}
-			delay(200);
 		}
-		else if (estado_menu == 4)
+		else if (estado_menu == 9)
 		{
 			lcd.setCursor(0,0);
-			lcd.print ("    MEGAZORD    ");
+			lcd.print (nome_robo);
 			lcd.setCursor(0,1);
 			lcd.print ("Creditos        ");
 
@@ -187,21 +196,48 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == SELECIONA)
 			{
-				estado_menu = 41;
+				estado_menu = 91;
 			}
-			delay(200);
 		}
 	}
-	else if (estado_menu < 30) // Opcao 2 - nivel 2
+	else if (estado_menu < 20) // Iniciar - nivel 2
+	{
+		if (estado_menu == 11)
+		{
+			lcd.setCursor(0,0);
+			lcd.print (nome_robo);
+
+			tempo = millis();
+			if ((tempo - t_liga) > 1000)
+			{
+				t_liga = tempo;
+				estado_liga += 1;
+			}
+
+			if (estado_liga < 4) {
+				lcd.setCursor(0,1);
+				lcd.print ("Iniciando em");
+				lcd.setCursor(13,1);
+				lcd.print (3 - estado_liga);
+			}
+			else {
+				lcd.setCursor(0,1);
+				lcd.print ("Morfando ...    ");
+				ligado = true;
+				estado_motor = -1;
+			}
+		}
+	}
+	else if (estado_menu < 30) // Configurar - nivel 2
 	{
 		if (estado_menu == 21)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("   CONFIGURAR   ");
 			lcd.setCursor(0,1);
-			lcd.print ("Volume  -     +");
-			lcd.setCursor(11,1);
-			lcd.print (volume);
+			lcd.print ("  TDT  -       +");
+			lcd.setCursor(9,1);
+			lcd.print (tdt);
 
 			if (botao == BAIXO)
 			{
@@ -209,19 +245,44 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 22;
+				estado_menu = 29;
 			}
 			else if (botao == DIREITA)
 			{
-				if (volume < 9) volume++;
+				if (tdt < 9) tdt += 10;
 			}
 			else if (botao == ESQUERDA)
 			{
-				if (volume > 0) volume--;
+				if (tdt > 0) tdt -= 10;
 			}
-			delay(200);
 		}
-		else if (estado_menu == 22)
+		else if (estado_menu == 22)   //   IGNORADO
+		{
+			lcd.setCursor(0,0);
+			lcd.print ("   CONFIGURAR   ");
+			lcd.setCursor(0,1);
+			lcd.print ("potenc -       +");
+			lcd.setCursor(11,1);
+			lcd.print (potencia);
+
+			if (botao == BAIXO)
+			{
+				estado_menu = 29;
+			}
+			else if (botao == CIMA)
+			{
+				estado_menu = 21;
+			}
+			else if (botao == DIREITA)
+			{
+				if (potencia < 255) potencia++;
+			}
+			else if (botao == ESQUERDA)
+			{
+				if (potencia > 0) potencia--;
+			}
+		}
+		else if (estado_menu == 29)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("   CONFIGURAR   ");
@@ -234,16 +295,15 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 21;
+				estado_menu = 22;
 			}
 			else if (botao == SELECIONA)
 			{
 				estado_menu = 0;
 			}
-			delay(200);
 		}
 	}
-	else if (estado_menu < 40) // Opcao 3 - nivel 2
+	else if (estado_menu < 40) // Informacoes - nivel 2
 	{
 		if (estado_menu == 31)
 		{
@@ -260,19 +320,30 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 32;
+				estado_menu = 39;
 			}
-			else if (botao == DIREITA)
-			{
-				// if (volume < 9) volume++;
-			}
-			else if (botao == ESQUERDA)
-			{
-				// if (volume > 0) volume--;
-			}
-			delay(200);
+
 		}
 		else if (estado_menu == 32)
+		{
+			lcd.setCursor(0,0);
+			lcd.print ("  INFORMACOES  ");
+			lcd.setCursor(0,1);
+			lcd.print ("Clock         s");
+			lcd.setCursor(7,1);
+		 	lcd.print (millis());
+
+			if (botao == BAIXO)
+			{
+				estado_menu = 39;
+			}
+			else if (botao == CIMA)
+			{
+				estado_menu = 31;
+			}
+
+		}
+		else if (estado_menu == 39)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("  INFORMACOES  ");
@@ -291,12 +362,11 @@ void menu() // Gerenciador do menu e suas opcoes
 			{
 				estado_menu = 0;
 			}
-			delay(200);
 		}
 	}
-	else if (estado_menu < 50) // Opcao 4 - nivel 2
+	else if (estado_menu < 100) // Creditos - nivel 2
 	{
-		if (estado_menu == 41)
+		if (estado_menu == 91)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("    CREDITOS    ");
@@ -305,16 +375,15 @@ void menu() // Gerenciador do menu e suas opcoes
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 42;
+				estado_menu = 92;
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 45;
+				estado_menu = 99;
 			}
 
-			delay(200);
 		}
-		else if (estado_menu == 42)
+		else if (estado_menu == 92)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("    CREDITOS    ");
@@ -323,16 +392,15 @@ void menu() // Gerenciador do menu e suas opcoes
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 43;
+				estado_menu = 93;
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 41;
+				estado_menu = 91;
 			}
 
-			delay(200);
 		}
-		else if (estado_menu == 43)
+		else if (estado_menu == 93)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("    CREDITOS    ");
@@ -341,16 +409,15 @@ void menu() // Gerenciador do menu e suas opcoes
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 44;
+				estado_menu = 94;
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 42;
+				estado_menu = 92;
 			}
 
-			delay(200);
 		}
-		else if (estado_menu == 44)
+		else if (estado_menu == 94)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("    CREDITOS    ");
@@ -359,16 +426,15 @@ void menu() // Gerenciador do menu e suas opcoes
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 45;
+				estado_menu = 99;
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 43;
+				estado_menu = 93;
 			}
 
-			delay(200);
 		}
-		else if (estado_menu == 45)
+		else if (estado_menu == 99)
 		{
 			lcd.setCursor(0,0);
 			lcd.print ("    CREDITOS    ");
@@ -377,23 +443,70 @@ void menu() // Gerenciador do menu e suas opcoes
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 41;
+				estado_menu = 91;
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 44;
+				estado_menu = 94;
 			}
 			else if (botao == SELECIONA)
 			{
 				estado_menu = 0;
 			}
-			delay(200);
 		}
+	}
+}
+
+void aciona_motor (int m1, int m2)
+{
+	if (m1 > 0)
+	{
+		motor_base->setSpeed(potencia);
+		motor_base->run(FORWARD);
+	}
+	else if (m1 < 0)
+	{
+		motor_base->setSpeed(potencia);
+		motor_base->run(BACKWARD);
+	}
+	else
+	{
+		motor_base->setSpeed(0);
+	}
+
+	if (m2 > 0)
+	{
+		motor_braco->setSpeed(potencia);
+		motor_braco->run(FORWARD);
+	}
+	else if (m2 < 0)
+	{
+		motor_braco->setSpeed(potencia);
+		motor_braco->run(BACKWARD);
+	}
+	else
+	{
+		motor_braco->setSpeed(0);
 	}
 }
 
 int escritor ()
 {
+	tempo = millis();
+	if ((tempo - t_motor) > tdt)
+	{
+		t_motor = tempo;
+		estado_motor++;
+	}
+	if (estado_motor < MOVIMENTOS) {
+		aciona_motor(pilha_motor_base[estado_motor],pilha_motor_braco[estado_motor]);
+	}
+	else
+	{
+		ligado = false;
+		estado_menu = 0;
+		aciona_motor(0,0);
+	}
 	return 0;
 }
 
@@ -402,12 +515,17 @@ int escritor ()
 void setup()
 {
 	// put your setup code here, to run once:
-	init_menu();
+	inicia();
 	AFMS.begin();
 }
 
 void loop()
 {
 	// put your main code here, to run repeatedly:
+	atualiza();
 	menu();
+	if (ligado)
+	{
+		escritor();
+	}
 }
