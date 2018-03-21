@@ -22,9 +22,9 @@ const int CIMA = 3;
 const int BAIXO = 4;
 const int SELECIONA = 5;
 
-const int T_MAX_MENU = 150;
+const int T_MAX_MENU = 180;
 
-const int MOVIMENTOS = 3;
+const int MOVIMENTOS = 4;
 
 int 	estado_menu;// Posicao na pilha do menu
 int 	estado_liga;// Posicao na pilha do menu 11
@@ -38,9 +38,8 @@ unsigned long t_menu;// Contador de tempo do menu
 unsigned long t_liga;// Contador de tempo do menu 11
 unsigned long t_motor;// Contador de tempo do motor
 
-int pilha_motor_base[MOVIMENTOS] = {0,0,0};
-int pilha_motor_braco[MOVIMENTOS] = {0,1,-1};
-
+int pilha_motor_base[MOVIMENTOS] = {0,-1,0,1};
+int pilha_motor_braco[MOVIMENTOS] = {1,0,-1,0};
 
 /* funcoes */
 
@@ -48,6 +47,7 @@ void inicia() // Inicializa as vatiaveis
 {
 	estado_menu = 0;
 	t_menu = 0;
+	potencia = 100;
 	tdt = 3000;
 	ligado = false;
 	lcd.begin(16, 2);
@@ -220,12 +220,14 @@ void menu() // Gerenciador do menu e suas opcoes
 				lcd.setCursor(13,1);
 				lcd.print (3 - estado_liga);
 			}
-			else {
+			else if (estado_liga < 5){
 				lcd.setCursor(0,1);
 				lcd.print ("Morfando ...    ");
 				ligado = true;
 				estado_motor = -1;
+				estado_liga += 1;
 			}
+
 		}
 	}
 	else if (estado_menu < 30) // Configurar - nivel 2
@@ -249,7 +251,8 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == DIREITA)
 			{
-				if (tdt < 9) tdt += 10;
+				// if (tdt < 10000)
+				tdt += 10;
 			}
 			else if (botao == ESQUERDA)
 			{
