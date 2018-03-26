@@ -24,8 +24,8 @@ const int SELECIONA = 5;
 
 const int T_MAX_MENU = 180;
 
-const int MOVIMENTOS = 28;
-const int MOV_TESTE = 4;
+const int MOVIMENTOS = 44;
+const int MOV_TESTE  = 4;
 
 int 	estado_menu;// Posicao na pilha do menu
 int 	estado_liga;// Posicao na pilha do menu 11
@@ -40,20 +40,75 @@ unsigned long t_menu;// Contador de tempo do menu
 unsigned long t_liga;// Contador de tempo do menu 11
 unsigned long t_motor;// Contador de tempo do motor
 
-int pilha_motor_base[MOVIMENTOS] = {0,0,0,1,1,0,0,0,1,1,1,-1,-1,0,1,-1,0,0,1,0,0,0,1,1,0,0,0,1};
-int pilha_motor_braco[MOVIMENTOS] = {1,1,1,0,0,-1,-1,-1,0,0,0,0,0,1,0,0,1,1,0,-1,-1,-1,1,-1,1,1,1,0};
+/* sequencia de movimentos doa Motores */
+int pilha_motor_base[MOVIMENTOS] 	=  { 
+  0, 0, 0, 1, 1, 0, 0, 0,	 				// U
+  1,										// _
+  1, 1,-1,-1, 0, 1,-1, 0, 0, 				// F
+  1, 1, 1, 									// _
+  0, 0, 0, 1, 1, 0, 0, 0, 					// M
+  1, 										// _
+  1, 1, 0,-1, 1, 0,-1,-1, 0, 0, 0, 1, 1 	// G
+};
+int pilha_motor_braco[MOVIMENTOS] 	=  {
+  1, 1, 1, 0, 0,-1,-1,-1,					// U
+  0,										// _
+  0, 0, 0, 0, 1, 0, 0, 1, 1,				// F
+  0, 0, 0, 									// _
+ -1,-1,-1, 1,-1, 1, 1, 1, 					// M
+  0, 										// _
+  0, 0,-1, 0, 0, 1, 0, 0,-1,-1,-1, 0, 0 	// G
+};
 
 int teste_m1[MOVIMENTOS] = {0,-1,0,1};
 int teste_m2[MOVIMENTOS] = {1,0,-1,0};
 
-/* funcoes */
+/* lista de funcoes utilizadas */
+
+void 	inicia();
+// Inicializa as vatiaveis
+void 	atualiza ();
+// Atualiza as constantes utilizadas
+int 	verifica_botao ();
+// Identifica qual botao foi acionado
+void 	menu();
+// Gerenciador do menu e suas opcoes
+void 	aciona_motor (int m1, int m2);
+// Contola o acionamento dos motores
+int 	escritor (int motor1[], int motor2[], int estados);
+// Gerencia os movimentos da escrita
+
+/* funcoes utilizadas pelo arduino */
+
+void setup()
+{
+	// put your setup code here, to run once:
+	inicia();
+}
+
+void loop()
+{
+	// put your main code here, to run repeatedly:
+	atualiza();
+	menu();
+	if (ligado)
+	{
+		escritor(pilha_motor_base, pilha_motor_braco, MOVIMENTOS);
+	}
+	else if (teste)
+	{
+		escritor(teste_m1, teste_m2, MOV_TESTE);
+	}
+}
+
+/* implementação das funcoes */
 
 void inicia() // Inicializa as vatiaveis
 {
 	estado_menu = 0;
 	t_menu = 0;
 	potencia = 100;
-	tdt = 3000;
+	tdt = 1000;
 	ligado = false;
 	teste = false;
 	lcd.begin(16, 2);
@@ -566,28 +621,4 @@ int escritor (int motor1[], int motor2[], int estados)
 		aciona_motor(0,0);
 	}
 	return 0;
-}
-
-/* funcoes utilizadas pelo arduino */
-
-void setup()
-{
-	// put your setup code here, to run once:
-	inicia();
-	AFMS.begin();
-}
-
-void loop()
-{
-	// put your main code here, to run repeatedly:
-	atualiza();
-	menu();
-	if (ligado)
-	{
-		escritor(pilha_motor_base, pilha_motor_braco, MOVIMENTOS);
-	}
-	else if (teste)
-	{
-		escritor(teste_m1, teste_m2, MOV_TESTE);
-	}
 }
