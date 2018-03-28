@@ -14,18 +14,18 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Adafruit_DCMotor *motor_base = AFMS.getMotor(1);
 Adafruit_DCMotor *motor_braco = AFMS.getMotor(2);
 
-const String nome_robo = " MEGAZORD  v1.0 ";
+#define NOME_ROBO 	" MEGAZORD  v1.0 "
 
-const int DIREITA 	= 1;
-const int ESQUERDA 	= 2;
-const int CIMA 		= 3;
-const int BAIXO 	= 4;
-const int SELECIONA = 5;
+#define DIREITA 	1
+#define ESQUERDA 	2
+#define CIMA 		3
+#define BAIXO 		4
+#define SELECIONA 	5
 
-const int T_MAX_MENU = 180;
+#define T_MAX_MENU 	180
 
-const int MOVIMENTOS = 44;
-const int MOV_TESTE  = 4;
+#define MOVIMENTOS 	44
+#define MOV_TESTE  	4
 
 int 	estado_menu;// Posicao na pilha do menu
 int 	estado_liga;// Posicao na pilha do menu 11
@@ -41,7 +41,7 @@ unsigned long t_liga;// Contador de tempo do menu 11
 unsigned long t_motor;// Contador de tempo do motor
 
 /* sequencia de movimentos doa Motores */
-int pilha_motor_base[MOVIMENTOS] 	=  { 
+int pilha_motor_base[MOVIMENTOS] 	=  {
   0, 0, 0, 1, 1, 0, 0, 0,	 				// U
   1,										// _
   1, 1,-1,-1, 0, 1,-1, 0, 0, 				// F
@@ -60,8 +60,8 @@ int pilha_motor_braco[MOVIMENTOS] 	=  {
   0, 0,-1, 0, 0, 1, 0, 0,-1,-1,-1, 0, 0 	// G
 };
 
-int teste_m1[MOVIMENTOS] = {0,-1,0,1};
-int teste_m2[MOVIMENTOS] = {1,0,-1,0};
+int teste_m1[MOVIMENTOS] = { 0,-1, 0, 1};
+int teste_m2[MOVIMENTOS] = { 1, 0,-1, 0};
 
 /* lista de funcoes utilizadas */
 
@@ -163,7 +163,7 @@ void menu() // Gerenciador do menu e suas opcoes
 	if (estado_menu < 10)	// Nivel 1
 	{
 		lcd.setCursor(0,0);
-		lcd.print (nome_robo);
+		lcd.print (NOME_ROBO);
 		lcd.setCursor(0,1);
 
 		if (estado_menu == 0)	// Mascara
@@ -272,7 +272,7 @@ void menu() // Gerenciador do menu e suas opcoes
 		if (estado_menu == 11)
 		{
 			lcd.setCursor(0,0);
-			lcd.print (nome_robo);
+			lcd.print (NOME_ROBO);
 			lcd.setCursor(0,1);
 
 			tempo = millis();
