@@ -27,18 +27,19 @@ Adafruit_DCMotor *motor_braco = AFMS.getMotor(2);
 #define MOVIMENTOS 	44
 #define MOV_TESTE  	4
 
-int 	estado_menu;// Posicao na pilha do menu
-int 	estado_liga;// Posicao na pilha do menu 11
-int 	estado_motor;// Posicao na pilha de acoes do motor
-int 	tdt;		// Tempo de Trabalho (unidade de tempo para cada acao do robo)
-int 	potencia;	// Forca de Trabalho (aplicada no motor)
-bool	ligado;		// Informa se o robo esta funcionando;
-bool	teste;		// Informa se o robo esta funcionando;
-float 	carga;		// Tensão real da fonte
-unsigned long tempo;// Contador do tempo corrente
-unsigned long t_menu;// Contador de tempo do menu
-unsigned long t_liga;// Contador de tempo do menu 11
-unsigned long t_motor;// Contador de tempo do motor
+int 	estado_menu;	// Posicao na pilha do menu
+int 	estado_liga;	// Posicao na pilha do menu 11
+int 	estado_motor;	// Posicao na pilha de acoes do motor
+int 	tdt;			// Tempo de Trabalho (unidade de tempo para cada acao do robo)
+int 	pot_motor_base;	// Forca de Trabalho (aplicada no motor)
+int 	pot_motor_braco;// Forca de Trabalho (aplicada no motor)
+bool	ligado;			// Informa se o robo esta funcionando;
+bool	teste;			// Informa se o robo esta funcionando;
+float 	carga;			// Tensão real da fonte
+unsigned long tempo;	// Contador do tempo corrente
+unsigned long t_menu;	// Contador de tempo do menu
+unsigned long t_liga;	// Contador de tempo do menu 11
+unsigned long t_motor;	// Contador de tempo do motor
 
 /* sequencia de movimentos doa Motores */
 int pilha_motor_base[MOVIMENTOS] 	=  {
@@ -107,8 +108,9 @@ void inicia() // Inicializa as vatiaveis
 {
 	estado_menu = 0;
 	t_menu = 0;
-	potencia = 100;
-	tdt = 1000;
+	pot_motor_base = 100;
+	pot_motor_braco = 60;
+	tdt = 2000;
 	ligado = false;
 	teste = false;
 	lcd.begin(16, 2);
@@ -342,9 +344,32 @@ void menu() // Gerenciador do menu e suas opcoes
 		}
 		else if (estado_menu == 22)
 		{
-			lcd.print ("potenc -       +");
+			lcd.print ("pot m1 -       +");
 			lcd.setCursor(10,1);
-			lcd.print (potencia);
+			lcd.print (pot_motor_base);
+
+			if (botao == BAIXO)
+			{
+				estado_menu = 23;
+			}
+			else if (botao == CIMA)
+			{
+				estado_menu = 21;
+			}
+			else if (botao == DIREITA)
+			{
+				if (pot_motor_base < 255) pot_motor_base++;
+			}
+			else if (botao == ESQUERDA)
+			{
+				if (pot_motor_base > 0) pot_motor_base--;
+			}
+		}
+		else if (estado_menu == 23)
+		{
+			lcd.print ("pot m2 -       +");
+			lcd.setCursor(10,1);
+			lcd.print (pot_motor_braco);
 
 			if (botao == BAIXO)
 			{
@@ -356,11 +381,11 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == DIREITA)
 			{
-				if (potencia < 255) potencia++;
+				if (pot_motor_braco < 255) pot_motor_braco++;
 			}
 			else if (botao == ESQUERDA)
 			{
-				if (potencia > 0) potencia--;
+				if (pot_motor_braco > 0) pot_motor_braco--;
 			}
 		}
 		else if (estado_menu == 29)
@@ -444,11 +469,11 @@ void menu() // Gerenciador do menu e suas opcoes
 
 		if (estado_menu == 41)
 		{
-			lcd.print ("Motores         ");
+			lcd.print ("Motores auto     ");
 
 			if (botao == BAIXO)
 			{
-				estado_menu = 49;
+				estado_menu = 42;
 			}
 			else if (botao == CIMA)
 			{
@@ -457,6 +482,62 @@ void menu() // Gerenciador do menu e suas opcoes
 			else if (botao == SELECIONA)
 			{
 				estado_menu = 411;
+			}
+		}
+		else if (estado_menu == 42)
+		{
+			lcd.print ("<  Motor Base  >");
+			lcd.setCursor(10,1);
+
+			if (botao == BAIXO)
+			{
+				estado_menu = 43;
+			}
+			else if (botao == CIMA)
+			{
+				estado_menu = 41;
+			}
+			else if (botao == DIREITA)
+			{
+				aciona_motor(1,0);
+				delay(T_MAX_MENU);
+			}
+			else if (botao == ESQUERDA)
+			{
+				aciona_motor(-1,0);
+				delay(T_MAX_MENU);
+			}
+			else
+			{
+				aciona_motor(0,0);
+			}
+		}
+		else if (estado_menu == 43)
+		{
+			lcd.print ("<  Motor Braco >");
+			lcd.setCursor(10,1);
+
+			if (botao == BAIXO)
+			{
+				estado_menu = 49;
+			}
+			else if (botao == CIMA)
+			{
+				estado_menu = 42;
+			}
+			else if (botao == DIREITA)
+			{
+				aciona_motor(0,1);
+				delay(T_MAX_MENU);
+			}
+			else if (botao == ESQUERDA)
+			{
+				aciona_motor(0,-1);
+				delay(T_MAX_MENU);
+			}
+			else
+			{
+				aciona_motor(0,0);
 			}
 		}
 		else if (estado_menu == 49)
@@ -469,7 +550,7 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == CIMA)
 			{
-				estado_menu = 41;
+				estado_menu = 43;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -574,12 +655,12 @@ void aciona_motor (int m1, int m2)
 {
 	if (m1 > 0)
 	{
-		motor_base->setSpeed(potencia);
+		motor_base->setSpeed(pot_motor_base);
 		motor_base->run(FORWARD);
 	}
 	else if (m1 < 0)
 	{
-		motor_base->setSpeed(potencia);
+		motor_base->setSpeed(pot_motor_base);
 		motor_base->run(BACKWARD);
 	}
 	else
@@ -589,12 +670,12 @@ void aciona_motor (int m1, int m2)
 
 	if (m2 > 0)
 	{
-		motor_braco->setSpeed(potencia);
+		motor_braco->setSpeed(pot_motor_braco);
 		motor_braco->run(FORWARD);
 	}
 	else if (m2 < 0)
 	{
-		motor_braco->setSpeed(potencia);
+		motor_braco->setSpeed(pot_motor_braco);
 		motor_braco->run(BACKWARD);
 	}
 	else
