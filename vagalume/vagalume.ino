@@ -1,3 +1,29 @@
+/*-------------------------------------------
+SUMARIO do MENU
+- Mascara
+- Iniciar
+  |- Iniciar(aciona funcionando)
+- Configurar
+  |- TDT (tempo de trabalho)
+  |- pot m1 (potencia do motor 1)
+  |- pot m2 (potencia do motor 2)
+- Informacoes
+  |- Bateria
+  |- RGB (Intencidade refletida por cor(%))
+  |- LDR (Intencidade refletida atual)
+  |- Tempo (tempo de fincionam. do arduino em ms)
+- Testes
+  |- Motores auto (Movimentos pre estabelecidos)
+  |- Motor 1 (acionamento manual)
+  |- Motor 2 (acionamento manual)
+  |- RGB (acionamento das luzes)
+- Creditos
+  |- Arthur P Silva
+  |- Bernardo Sanches
+  |- Gustavo Campos
+  |- Matheus Santos
+--------------------------------------------*/
+
 /* bibliotecas */
 
 #include <LiquidCrystal.h>
@@ -16,7 +42,7 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
+Adafruit_DCMotor *motor_m2 = AFMS.getMotor(2);
 
 #define NOME_ROBO 	" MEGAZORD  v2.0 "
 
@@ -30,6 +56,11 @@ Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
 #define GREEN	 	1
 #define BLUE 		2
 
+#define LED_RED_PIN 		23
+#define LED_GRN_PIN	 		25
+#define LED_BLU_PIN 		27
+#define LDR_PIN 			8
+
 #define T_MAX_MENU 	180
 
 int 	estado_menu;	// Posicao na pilha do menu
@@ -37,20 +68,24 @@ int 	estado_liga;	// Posicao na pilha do menu 11
 int 	estado_motor;	// Posicao na pilha de acoes do motor
 int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
-// int 	txt;			// Texto a ser escrito;
+int 	tdt;			// Tempo de Trabalho (unidade de tempo para cada acao do robo)
+int 	txt;			// Texto a ser escrito;
+int 	led;			// Led aceso;
+int 	ldr_valor;		// Intencidade de lus captada;
 bool	ligado;			// Informa se o robo esta funcionando;
-float 	tdt;			// Tempo de Trabalho (unidade de tempo para cada acao do robo)
 float 	carga;			// Tensão real da fonte
 float 	cores[3];		// Taxa de reflexao de cor (Red Green Blue)
 unsigned long tempo;	// Contador do tempo corrente
 unsigned long t_menu;	// Contador de tempo do menu
-// unsigned long t_liga;	// Contador de tempo do menu 11
+unsigned long t_liga;	// Contador de tempo do menu 11
 unsigned long t_motor;	// Contador de tempo do motor
 
 
 /* lista de funcoes utilizadas */
 
-void 	inicia();
+void 	inicia_menu();
+void 	inicia_motor();
+void 	inicia_sensor();
 // Inicializa as vatiaveis
 void 	atualiza ();
 // Atualiza as constantes utilizadas
@@ -73,7 +108,9 @@ void 	ve_cor();
 void setup()
 {
 	// put your setup code here, to run once:
-	inicia();
+	inicia_menu();
+	inicia_motor();
+	inicia_sensor();
 }
 
 void loop()
@@ -81,29 +118,45 @@ void loop()
 	// put your main code here, to run repeatedly:
 	atualiza();
 	menu();
+	// aciona_luz(true,true,true);
 }
 
 /* implementação das funcoes */
 
-void inicia() // Inicializa as vatiaveis
+void inicia_menu() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	estado_menu = 0;
 	t_menu = 0;
+	lcd.begin(16, 2);
+}
+void inicia_motor() // Inicializa as vatiaveis
+{
+	// Parametros iniciais
 	pot_motor_m1 = 100;
 	pot_motor_m2 = 100;
 	tdt = 10000;
 	ligado = false;
+	AFMS.begin(); // create with the default frequency 1.6KHz
+}
+
+void inicia_sensor() // Inicializa as vatiaveis
+{
+	// Parametros iniciais
 	cores[RED]	= 0.0;
 	cores[GREEN]= 0.0;
 	cores[BLUE]	= 0.0;
-	lcd.begin(16, 2);
-	AFMS.begin(); // create with the default frequency 1.6KHz
+	led = 0;
+	pinMode(RED,OUTPUT);
+	pinMode(GREEN,OUTPUT);
+	pinMode(BLUE,OUTPUT);
 }
 
 void atualiza () // Atualiza as constantes utilizadas
 {
-	carga = 5.0;
+	int sensorValue = analogRead(A0);
+	carga = sensorValue * (5.0 / 1023.0);
+	ldr_valor = analogRead(LDR_PIN);
 	tempo = millis();
 }
 
@@ -156,26 +209,26 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("                ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 1;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 9;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 1;
 			}
 		}
 		else if (estado_menu == 1)
 		{
 			lcd.print ("Iniciar         ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 2;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 0;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 2;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -188,13 +241,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Configurar      ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 3;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 1;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 3;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -205,13 +258,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Informacoes     ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 4;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 2;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 4;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -222,13 +275,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Testes          ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 9;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 3;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 9;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -239,13 +292,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Creditos        ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 0;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 4;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 0;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -309,13 +362,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.setCursor(10,1);
 			lcd.print (tdt);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 22;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 29;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 22;
 			}
 			else if (botao == DIREITA)
 			{
@@ -333,13 +386,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.setCursor(10,1);
 			lcd.print (pot_motor_m1);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 23;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 21;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 23;
 			}
 			else if (botao == DIREITA)
 			{
@@ -356,13 +409,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.setCursor(10,1);
 			lcd.print (pot_motor_m2);
 
+			else if (botao == CIMA)
+			{
+				estado_menu = 22;
+			}
 			if (botao == BAIXO)
 			{
 				estado_menu = 29;
-			}
-			else if (botao == CIMA)
-			{
-				estado_menu = 21;
 			}
 			else if (botao == DIREITA)
 			{
@@ -377,13 +430,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Voltar          ");
 
+			else if (botao == CIMA)
+			{
+				estado_menu = 23;
+			}
 			if (botao == BAIXO)
 			{
 				estado_menu = 21;
-			}
-			else if (botao == CIMA)
-			{
-				estado_menu = 22;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -402,13 +455,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.setCursor(11,1);
 			lcd.print (carga);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 32;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 39;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 32;
 			}
 
 		}
@@ -422,29 +475,46 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.setCursor(11,1);
 			lcd.print (cores[BLUE]);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 33;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 31;
 			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 33;
+			}
 
 		}
-		else if (estado_menu == 33)
+
+		if (estado_menu == 33)
+		{
+			lcd.print ("LDR             ");
+			lcd.setCursor(5,1);
+			lcd.print (ldr_valor);
+
+			else if (botao == CIMA)
+			{
+				estado_menu = 32;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 34;
+			}
+
+		}
+		else if (estado_menu == 34)
 		{
 			lcd.print ("Tempo          s");
 			lcd.setCursor(7,1);
 			lcd.print (millis());
 
+			else if (botao == CIMA)
+			{
+				estado_menu = 33;
+			}
 			if (botao == BAIXO)
 			{
 				estado_menu = 39;
-			}
-			else if (botao == CIMA)
-			{
-				estado_menu = 32;
 			}
 
 		}
@@ -452,11 +522,11 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Voltar          ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 31;
-			}
 			else if (botao == CIMA)
+			{
+				estado_menu = 34;
+			}
+			if (botao == BAIXO)
 			{
 				estado_menu = 31;
 			}
@@ -476,13 +546,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Motores auto     ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 42;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 49;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 42;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -494,13 +564,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.print ("F   Motor  1   T");
 			lcd.setCursor(10,1);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 43;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 41;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 43;
 			}
 			else if (botao == DIREITA)
 			{
@@ -522,13 +592,13 @@ void menu() // Gerenciador do menu e suas opcoes
 			lcd.print ("F   Motor  2   T");
 			lcd.setCursor(10,1);
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 49;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 42;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 44;
 			}
 			else if (botao == DIREITA)
 			{
@@ -545,17 +615,59 @@ void menu() // Gerenciador do menu e suas opcoes
 				aciona_motor(0,0);
 			}
 		}
+		else if (estado_menu == 44)
+		{
+			if (led == 0)
+			{
+				lcd.print ("<   R  G  B    >");
+				aciona_luz(false, false, false);
+			}
+			else if (led == 1)
+			{
+				lcd.print ("<  *R* G  B    >");
+				aciona_luz(true, false, false);
+			}
+			else if (led == 2)
+			{
+				lcd.print ("<   R *G* B    >");
+				aciona_luz(false, true, false);
+			}
+			else if (led == 3)
+			{
+				lcd.print ("<   R  G *B*   >");
+				aciona_luz(false, false, true);
+			}
+
+			else if (botao == CIMA)
+			{
+				estado_menu = 43;
+				aciona_luz(false, false, false);
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 49;
+				aciona_luz(false, false, false);
+			}
+			else if (botao == DIREITA)
+			{
+				if (led < 3) led++;
+			}
+			else if (botao == ESQUERDA)
+			{
+				if (led > 0) led--;
+			}
+		}
 		else if (estado_menu == 49)
 		{
 			lcd.print ("Voltar          ");
 
+			else if (botao == CIMA)
+			{
+				estado_menu = 44;
+			}
 			if (botao == BAIXO)
 			{
 				estado_menu = 41;
-			}
-			else if (botao == CIMA)
-			{
-				estado_menu = 43;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -573,13 +685,13 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Arthur P Silva  ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 92;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 99;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 92;
 			}
 
 		}
@@ -587,52 +699,52 @@ void menu() // Gerenciador do menu e suas opcoes
 		{
 			lcd.print ("Bernardo Sanches");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 93;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 91;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 93;
 			}
 		}
 		else if (estado_menu == 93)
 		{
 			lcd.print ("Gustavo Campos  ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 94;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 92;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 94;
 			}
 		}
 		else if (estado_menu == 94)
 		{
 			lcd.print ("Matheus Santos  ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 99;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 93;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 99;
 			}
 		}
 		else if (estado_menu == 99)
 		{
 			lcd.print ("Voltar          ");
 
-			if (botao == BAIXO)
-			{
-				estado_menu = 91;
-			}
 			else if (botao == CIMA)
 			{
 				estado_menu = 94;
+			}
+			if (botao == BAIXO)
+			{
+				estado_menu = 91;
 			}
 			else if (botao == SELECIONA)
 			{
@@ -688,22 +800,42 @@ void aciona_motor (int m1, int m2)
 
 void aciona_luz(bool r, bool g, bool b)
 {
-	if (r) ;
-	else ;
+	if (r) digitalWrite(LED_RED_PIN, HIGH);
+	else digitalWrite(LED_RED_PIN, LOW);
 
-	if (g) ;
-	else ;
+	if (g) digitalWrite(LED_GRN_PIN, HIGH);
+	else digitalWrite(LED_GRN_PIN, LOW);
 
-	if (b) ;
-	else ;
+	if (b) digitalWrite(LED_BLU_PIN, HIGH);
+	else digitalWrite(LED_BLU_PIN, LOW);
 }
 
 void ve_objeto()
 {
-
+	// liga led
+	// sensorValue
+	// desliga led
 }
 
 void ve_cor()
 {
+	float r, g, b, total;
 
+	aciona_luz(true, false, false);
+	r = 0; // sensorValue
+	aciona_luz(false, false, false);
+
+	aciona_luz(false, true, false);
+	g = 0; // sensorValue
+	aciona_luz(false, false, false);
+
+	aciona_luz(false, false, true);
+	b = 0; // sensorValue
+	aciona_luz(false, false, false);
+
+	total = r + g + b;
+
+	cores[RED] 		= r / total;
+	cores[GREEN] 	= g / total;
+	cores[BLUE] 	= b / total;
 }
