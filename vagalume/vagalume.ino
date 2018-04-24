@@ -62,11 +62,11 @@ using namespace std;
 
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
-#define T_TESTE 		300
-#define T_GIRO_30 		300
-#define T_GIRO_90 		900
-#define T_ANDA_30		1000
-#define T_ANDA_RE		100
+#define T_TESTE 		2000
+#define T_GIRO_30 		700
+#define T_GIRO_90 		2100
+#define T_ANDA_30		5000
+#define T_ANDA_RE		500
 #define T_MAX_ANDAR		10000
 #define T_NOME  		500
 
@@ -86,6 +86,7 @@ public:
 	void set(int n, int m);
 	int  get_dir(int n);
 	int  get_tmp(int n);
+	void print();
 };
 void entrada::set_tam(int n)
 { tam = n; }
@@ -112,6 +113,17 @@ int entrada::get_tmp(int n)
 	if (n >= tam) return -1;
 	return tempo[n];
 }
+void entrada::print()
+{
+	for (int i = 0; i < tam; i++) {
+		Serial.print("( ");
+		Serial.print(direcao[i]);
+		Serial.print(" , ");
+		Serial.print(tempo[i]);
+		Serial.println(" )");
+	}
+	Serial.println();
+}
 
 /* variaveis globais */
 
@@ -122,7 +134,7 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor_m2 = AFMS.getMotor(2);
+Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
 
 // Interacao do menu Geral
 int 	estado_menu;	// Posicao na pilha do menu
@@ -211,7 +223,8 @@ void balanco_preto();
 
 void setup()
 {
-	// put your setup code here, to run once:
+	Serial.begin(9600);
+
 	inicia_menu();
 	inicia_motor();
 	inicia_sensor();
@@ -240,9 +253,8 @@ void inicia_menu() // Inicializa as vatiaveis
 void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	estado_motor = -1;
-	pot_motor_m1 = 100;
-	pot_motor_m2 = 100;
+	pot_motor_m1 = 150;
+	pot_motor_m2 = 150;
 	tdt = 10000;
 	ligado = false;
 	AFMS.begin(); // create with the default frequency 1.6KHz
@@ -272,6 +284,7 @@ void 	inicia_entradas()
 	teste.set( PARA,   	 T_TESTE );
 	teste.set( ESQUERDA, T_TESTE );
 	teste.set( PARA,   	 T_TESTE );
+	teste.print();
 
 	vai_vem.set_tam(6);
 	vai_vem.reset();
@@ -791,7 +804,7 @@ void menu() // Gerenciador do menu e suas opcoes
 		}
 		else if (estado_menu == 42)
 		{
-			lcd.print ("F   Motor  1   T");
+			lcd.print ("F     Anda     T");
 			lcd.setCursor(10,1);
 
 			if (botao == CIMA)
@@ -804,12 +817,12 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == DIREITA)
 			{
-				aciona_motor(1,0);
+				aciona_motor(-1,-1);
 				delay(T_MAX_MENU);
 			}
 			else if (botao == ESQUERDA)
 			{
-				aciona_motor(-1,0);
+				aciona_motor(1,1);
 				delay(T_MAX_MENU);
 			}
 			else
@@ -819,7 +832,7 @@ void menu() // Gerenciador do menu e suas opcoes
 		}
 		else if (estado_menu == 43)
 		{
-			lcd.print ("F   Motor  2   T");
+			lcd.print ("E     Gira     D");
 			lcd.setCursor(10,1);
 
 			if (botao == CIMA)
@@ -832,12 +845,12 @@ void menu() // Gerenciador do menu e suas opcoes
 			}
 			else if (botao == DIREITA)
 			{
-				aciona_motor(0,1);
+				aciona_motor(1,-1);
 				delay(T_MAX_MENU);
 			}
 			else if (botao == ESQUERDA)
 			{
-				aciona_motor(0,-1);
+				aciona_motor(-1,1);
 				delay(T_MAX_MENU);
 			}
 			else
@@ -1326,7 +1339,12 @@ void aciona_motor (int m1, int m2)
 
 int anda(int direcao, int tmp_acao)
 {
-	if (ligado && (millis()-t_motor < tmp_acao))
+	Serial.print("Direcao: ");
+	Serial.println(direcao);
+	Serial.print("Tempo: ");
+	Serial.println(tmp_acao);
+
+	if (millis()-t_motor < tmp_acao)
 	{
 		if (direcao == FRENTE)
 		{
@@ -1344,37 +1362,41 @@ int anda(int direcao, int tmp_acao)
 		{
 			aciona_motor(-1,1);
 		}
-		else
+		else if (direcao == TRAS)
 		{
 			aciona_motor(0,0);
 		}
-		return 0;
+		else
+		{
+			aciona_motor(0,0);
+			return 1;
+		}
 	}
 	else
 	{
 		aciona_motor(0,0);
 		return 1;
 	}
+	return 0;
 }
 
 int move(entrada a)
 {
-	if (estado_motor < 0)
-	{
-		ligado = false;
-		aciona_motor(0,0);
-		return 1;
-	}
 	if (estado_motor >= a.get_tam())
 	{
 		ligado = false;
-		estado_motor = -1;
 		aciona_motor(0,0);
 		return 1;
 	}
 
-	estado_motor += anda(a.get_dir(estado_motor), a.get_tmp(estado_motor));
 
+	if (anda(a.get_dir(estado_motor), a.get_tmp(estado_motor)) == 1)
+	{
+		estado_motor += 1;
+		t_motor = millis();
+	}
+	Serial.print("Estado: ");
+	Serial.println(estado_motor);
 
 	return 0;
 }
@@ -1404,7 +1426,7 @@ int movimentos ()
 	}
 	else if (mov == 2)
 	{
-		if (move(vai_vem) == 1) 	ligado = false;
+		if (move(teste) == 1) 	ligado = false;
 	}
 	else if (mov == 3)
 	{
@@ -1478,10 +1500,10 @@ void ve_cor()
 	cores[RED] 		= (r - preto[RED])/(cinza)*255;
 
 	cinza = branco[GREEN]-preto[GREEN];
-	cores[GREEN] 	= (r - preto[GREEN])/(cinza)*255;
+	cores[GREEN] 	= (g - preto[GREEN])/(cinza)*255;
 
 	cinza = branco[BLUE]-preto[BLUE];
-	cores[BLUE] 	= (r - preto[BLUE])/(cinza)*255;
+	cores[BLUE] 	= (b - preto[BLUE])/(cinza)*255;
 }
 
 void balanco_branco()
