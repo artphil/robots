@@ -2,30 +2,30 @@
 SUMARIO do MENU
 - Mascara (Sublinha em branco)
 - Iniciar
-|- Iniciar(aciona funcionando)
+--|- Iniciar(aciona funcionanento principal)
 - Configurar
-|- TDT (tempo de trabalho)
-|- pot m1 (potencia do motor 1)
-|- pot m2 (potencia do motor 2)
+--|- TDT (tempo de trabalho)
+--|- pot m1 (potencia do motor 1)
+--|- pot m2 (potencia do motor 2)
 - Informacoes
-|- Bateria
-|- RGB (Intencidade refletida por cor(%))
-|- LDR (Intencidade refletida atual)
-|- Tempo (tempo de fincionam. do arduino em ms)
+--|- Bateria
+--|- RGB (Intencidade refletida por cor(%))
+--|- LDR (Intencidade refletida atual)
+--|- Tempo (tempo de fincionam. do arduino em ms)
 - Testes
-|- Motores auto (Movimentos pre estabelecidos)
-|- Motor 1 (acionamento manual)
-|- Motor 2 (acionamento manual)
-|- RGB (acionamento das luzes)
+--|- Motores auto (Movimentos pre estabelecidos)
+--|- Anda F/T (acionamento manual)
+--|- Gira D/E (acionamento manual)
+--|- RGB (acionamento das luzes)
 - Pre Moves
-|- Vai Vem
-|- Triangulo
-|- Quadrado
+--|- Vai Vem
+--|- Triangulo
+--|- Quadrado
 - Creditos
-|- Arthur P Silva
-|- Bernardo Sanches
-|- Gustavo Campos
-|- Matheus Santos
+--|- Arthur P Silva
+--|- Bernardo Sanches
+--|- Gustavo Campos
+--|- Matheus Santos
 --------------------------------------------*/
 
 /* bibliotecas */
@@ -137,6 +137,7 @@ Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
 Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
 
 // Interacao do menu Geral
+int 	botao;			// Botao pressionado no momento
 int 	estado_menu;	// Posicao na pilha do menu
 int 	estado_liga;	// Posicao na pilha do menu 11
 unsigned long t_menu;	// Contador de tempo do menu
@@ -321,6 +322,7 @@ void 	inicia_entradas()
 
 void atualiza () // Atualiza as constantes utilizadas
 {
+	botao = 0;
 	int sensorValue = analogRead(A0);
 	carga = sensorValue * (5.0 / 1023.0);
 	ldr_valor = media_sensor(5);
@@ -331,33 +333,463 @@ int verifica_botao () // Identifica qual botao foi acionado
 {
 	int botao = analogRead (0); //Leitura do valor da porta analógica A0
 
-	if (botao < 50) // DIREITA
+	if (botao < 50) 		return DIREITA;
+	else if (botao < 100) 	return CIMA;
+	else if (botao < 300) 	return BAIXO;
+	else if (botao < 500) 	return ESQUERDA;
+	else if (botao < 700) 	return SELECIONA;
+	else					return 0;
+
+}
+
+void m_iniciar(int n)	// Inicia processo de movimentos
+{
+	lcd.setCursor(0,0);
+	lcd.print (NOME_ROBO);
+	lcd.setCursor(0,1);
+
+	if ((millis() - t_liga) > 1000)
 	{
-		return DIREITA;
+		t_liga = millis();
+		estado_liga += 1;
 	}
-	else if (botao < 100) // CIMA
+
+	if (estado_liga < 4)
 	{
-		return CIMA;
+		lcd.print ("Iniciando em    ");
+		lcd.setCursor(13,1);
+		lcd.print (3 - estado_liga);
 	}
-	else if (botao < 300) // BAIXO
+	else if (estado_liga < 5)
 	{
-		return BAIXO;
+		if (!ligado)
+		{
+			lcd.print ("Morfando        ");
+			ligado 	= true;
+			estado_motor = 0;
+			t_motor = millis();
+			estado_liga += 1;
+		}
+		else
+		{
+			lcd.print ("Ja em operacao  ");
+		}
 	}
-	else if (botao < 500) // ESQUERDA
+	else if (estado_liga < 10)
 	{
-		return ESQUERDA;
+		if (ligado)
+		{
+			lcd.setCursor((estado_liga+4),1);
+			lcd.print (".");
+		}
 	}
-	else if (botao < 700) // SELECIONA
+	else estado_menu = 0;
+}
+
+void m_inicio(int n) // MENU - Nivel 1
+{
+	int ns = 7;
+	String titulo = NOME_ROBO;
+	String subtitulo[ns] = {
+		"                ",
+		"Iniciar         ",
+		"Configurar      ",
+		"Informacoes     ",
+		"Testes          ",
+		"Pre moves       ",
+		"Creditos        "
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
 	{
-		return SELECIONA;
+		t_menu = millis();
+		botao = verifica_botao();
 	}
-	else
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+
+	if (botao == CIMA)
 	{
-		return 0;
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == 1)
+		{
+			mov = 1;
+			t_liga = millis();
+			estado_liga = 0;
+		}
+		estado_menu = (estado_menu*10)+1;
+	}
+}
+
+void m_configurar(int n) // Configurar - nivel 2
+{
+	String titulo = "   CONFIGURAR   ";
+	int ns = 6;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"TDT    -       +",
+		"pot ME -       +",
+		"pot MD -       +",
+		"Balanco branco  ",
+		"Balanco preto   ",
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	if (estado_menu == n+1)      lcd.print (tdt);
+	else if (estado_menu == n+2) lcd.print (pot_motor_m1);
+	else if (estado_menu == n+3) lcd.print (pot_motor_m2);
+
+	if (botao == CIMA)
+	{
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+	}
+	else if (botao == DIREITA)
+	{
+		if (estado_menu == n+1)
+		if (tdt < 10000) tdt += 10;
+
+		else if (estado_menu == n+2)
+		if (pot_motor_m1 < 255) pot_motor_m1++;
+
+		else if (estado_menu == n+3)
+		if (pot_motor_m2 < 255) pot_motor_m2++;
+	}
+	else if (botao == ESQUERDA)
+	{
+		if (estado_menu == n+1)
+		if (tdt > 0) tdt -= 10;
+
+		else if (estado_menu == n+2)
+		if (pot_motor_m1 > 0) pot_motor_m1--;
+
+		else if (estado_menu == n+3)
+		if (pot_motor_m2 > 0) pot_motor_m2--;
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == n)
+		estado_menu = (estado_menu/10);
+
+		else if (estado_menu == n+4)
+		{
+			balanco_branco();
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+5)
+		{
+			balanco_preto();
+			estado_menu = (estado_menu/10);
+		}
+	}
+}
+
+void m_informacoes(int n) // Informacoes - nivel 2
+{
+	String titulo = "  INFORMACOES  ";
+	int ns = 6;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"Bateria        v",
+		"R    G    B     ",
+		"LDR             ",
+		"Objeto          ",
+		"Tempo         s",
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	if (estado_menu == n+1) lcd.print (carga);
+	else if (estado_menu == n+2)
+	{
+		lcd.setCursor(2,1);
+		lcd.print (cores[RED]);
+		lcd.setCursor(7,1);
+		lcd.print (cores[GREEN]);
+		lcd.setCursor(12,1);
+		lcd.print (cores[BLUE]);
+	}
+	else if (estado_menu == n+3) lcd.print (ldr_valor);
+	else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+	else if (estado_menu == n+5) lcd.print (millis());
+
+	if (botao == CIMA)
+	{
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == n)
+		estado_menu = (estado_menu/10);
+
+		else if (estado_menu == n+2) ve_cor();
+	}
+}
+
+void m_testes(int n) // Testes - nivel 2
+{
+	String titulo = "     TESTES     ";
+	int ns = 5;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"Motores auto    ",
+		"F     Anda     T",
+		"E     Gira     D",
+		"<  R   G   B   >",
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+
+	if (estado_menu == n+4)
+	{
+		if (led == 0)
+		{
+			lcd.print ("<  R   G   B   >");
+			aciona_luz(false, false, false);
+		}
+		else if (led == 1)
+		{
+			lcd.print ("< *R*  G   B   >");
+			aciona_luz(true, false, false);
+		}
+		else if (led == 2)
+		{
+			lcd.print ("<  R  *G*  B   >");
+			aciona_luz(false, true, false);
+		}
+		else if (led == 3)
+		{
+			lcd.print ("<  R   G  *B*  >");
+			aciona_luz(false, false, true);
+		}
+		else if (led == 4)
+		{
+			lcd.print ("< *R* *G* *B*  >");
+			aciona_luz(true, true, true);
+		}
+
+	}
+
+	if (botao == CIMA)
+	{
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+	}
+	else if (botao == DIREITA)
+	{
+		if (estado_menu == n+2)			anda(TRAS, T_MAX_MENU);
+		else if (estado_menu == n+3)	anda(DIREITA, T_MAX_MENU);
+		else if (estado_menu == n+4)
+		{
+			if (led < 4) led++;
+			else led = 0;
+		}
+	}
+	else if (botao == ESQUERDA)
+	{
+		if (estado_menu == n+2)			anda(FRENTE, T_MAX_MENU);
+		else if (estado_menu == n+3)	anda(ESQUERDA, T_MAX_MENU);
+		else if (estado_menu == n+4)
+		{
+			if (led > 0) led--;
+			else led = 4;
+		}
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == n)
+		estado_menu = (estado_menu/10);
+
+		else if (estado_menu == n+1)
+		{
+			estado_menu = 10;
+			mov 	= 2;
+			t_liga = millis();
+			estado_liga = 0;
+		}
+	}
+}
+
+void m_pre_moves(int n) // Pre moves - nivel 2
+{
+	String titulo = "   PRE  MOVES   ";
+	int ns = 4;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"Vai Vem         ",
+		"Triangulo       ",
+		"Quadrado         ",
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+
+	if (botao == CIMA)
+	{
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		mov = (estado_menu%10)+2;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		mov = (estado_menu%10)+2;
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == n)
+		estado_menu = (estado_menu/10);
+		else
+		{
+			estado_menu = 10;
+			t_liga = millis();
+			estado_liga = 0;
+		}
+	}
+}
+
+void m_creditos(int n) // Creditos - nivel 2
+{
+	String titulo = "   PRE  MOVES   ";
+	int ns = 4;
+	int tam = 70;
+	char subtitulo[ns][tam] = {
+		" Arthur Phillip Silva - Hacker Verde - Sistemas de Informacao         ",
+		" Bernardo Sanches - Lego Builder Azul - Engenharia Aeroespacial       ",
+		" Gustavo Duarte - Eletrician Vermelho - Eng. Controle e Automacao     ",
+		" Matheus Santos - Gear Master Preto - Eng. Controle e Automacao       "
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+
+	if (estado_menu == n)
+	{
+		lcd.setCursor(0,1);
+		lcd.print ("Voltar          ");
+	}
+	if (desliza)
+	{
+		if ((millis() - t_liga) > T_NOME)
+		{
+			t_liga = millis();
+			letra += 1;
+			if (letra >= tam) letra = 0;
+		}
+	}
+	for (int l=0; l<16; l++)
+	{
+		lcd.setCursor(l,1);
+		lcd.print (subtitulo[estado_menu%10][(letra+l)%tam]);
+	}
+
+	if (botao == CIMA)
+	{
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+	}
+	else if (botao == BAIXO)
+	{
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+	}
+	else if (botao == SELECIONA)
+	{
+		if (estado_menu == n)
+		estado_menu = (estado_menu/10);
+		else
+		{
+			desliza = !desliza;
+		}
 	}
 }
 
 void menu() // Gerenciador do menu e suas opcoes
+{
+	if (estado_menu < 10) m_inicio(0);
+	else if (estado_menu < 20) m_iniciar(10);
+	else if (estado_menu < 30) m_configurar(20);
+	else if (estado_menu < 40) m_informacoes(30);
+	else if (estado_menu < 50) m_testes(40);
+	else if (estado_menu < 60) m_pre_moves(50);
+	else if (estado_menu < 70) m_creditos(60);
+}
+
+
+void menu2() // Gerenciador do menu e suas opcoes
 {
 	int botao;
 	if ((millis() - t_menu) > T_MAX_MENU)
@@ -1461,6 +1893,7 @@ int media_sensor(int n){
 	for (int i = 0;i < n;i++)
 	{
 		total += analogRead(LDR_PIN);
+		delay(100);
 	}
 	return total/n;
 }
@@ -1481,26 +1914,38 @@ void ve_cor()
 {
 	int r, g, b, cinza;
 
+	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
+
 	aciona_luz(true, false, false);
 	delay(200);
 	r = media_sensor(5);
 	aciona_luz(false, false, false);
+
+	lcd.setCursor(10,1);	lcd.print (".");
 
 	aciona_luz(false, true, false);
 	delay(200);
 	g = media_sensor(5);
 	aciona_luz(false, false, false);
 
+	lcd.setCursor(11,1);	lcd.print (".");
+
 	aciona_luz(false, false, true);
 	delay(200);
 	b = media_sensor(5);
 	aciona_luz(false, false, false);
 
+	lcd.setCursor(12,1);	lcd.print (".");
+
 	cinza = branco[RED]-preto[RED];
 	cores[RED] 		= (r - preto[RED])/(cinza)*255;
 
+	lcd.setCursor(13,1);	lcd.print (".");
+
 	cinza = branco[GREEN]-preto[GREEN];
 	cores[GREEN] 	= (g - preto[GREEN])/(cinza)*255;
+
+	lcd.setCursor(14,1);	lcd.print (".");
 
 	cinza = branco[BLUE]-preto[BLUE];
 	cores[BLUE] 	= (b - preto[BLUE])/(cinza)*255;
