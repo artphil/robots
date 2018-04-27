@@ -49,10 +49,13 @@ using namespace std;
 #define TRAS 		7
 #define PARA 		8
 
-// Identificacao das cores dos leds
+// Identificacao das cores
 #define RED 		0
 #define GREEN	 	1
 #define BLUE 		2
+#define YELLOW 		3
+#define WHITE 		4
+#define BLACK 		5
 
 // Identificacao dos pinos utilizados
 #define LED_RED_PIN 	23
@@ -164,16 +167,25 @@ entrada triangulo;
 entrada quadrado;
 
 // Leds e sensores
-int 	led;			// Led aceso;
-int 	ldr_valor;		// Intencidade de luz captada;
-int 	ldr_limiar;		// Valor limite para ver objeto;
-int 	cores[3];		// Taxa de reflexao de cor (Red Green Blue)
-int 	branco[3];		// Taxa de reflexao de cor (Red Green Blue)
-int 	preto[3];		// Taxa de reflexao de cor (Red Green Blue)
-bool	objeto;			// Informa se tem algo na frente do robo;
+int 	led;			// Led aceso
+int 	cor;			// Cor encontrada
+int 	ldr_valor;		// Intencidade de luz captada
+int 	ldr_limiar;		// Valor limite para ver objeto
+int 	ldr_cor[3];		// Taxa de reflexao de cor (Red Green Blue)
+int 	ldr_branco[3];	// Taxa de reflexao de cor (Red Green Blue)
+int 	ldr_preto[3];	// Taxa de reflexao de cor (Red Green Blue)
+bool	objeto;			// Informa se tem algo na frente do robo
 float 	carga;			// Tensão real da fonte
 unsigned long t_motor;	// Contador de tempo do motor
-
+String	nome_cor[] =
+{
+	"Vermelho",
+	"Verde",
+	"Azul",
+	"Amarelo",
+	"Branco",
+	"Preto"
+};						// Nome das cores
 
 /* lista de funcoes utilizadas */
 
@@ -212,7 +224,7 @@ void 	inicia_sensor();
 // Controla o acionamento das luzes
 void 	aciona_luz(bool, bool, bool);
 // Retorna a media de leituras do sensor
-int 	media_sensor();
+int 	media_sensor(int);
 // Percebe um obstaculo
 bool 	ve_objeto();
 // Percebe uma cor
@@ -265,10 +277,12 @@ void inicia_motor() // Inicializa as vatiaveis
 void inicia_sensor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	cores[RED]	= 0.0;
-	cores[GREEN]= 0.0;
-	cores[BLUE]	= 0.0;
+	ldr_cor[RED]	= 0.0;
+	ldr_cor[GREEN]= 0.0;
+	ldr_cor[BLUE]	= 0.0;
 	led = 0;
+	cor = WHITE;
+	ldr_limiar = 100;
 	pinMode(RED,OUTPUT);
 	pinMode(GREEN,OUTPUT);
 	pinMode(BLUE,OUTPUT);
@@ -549,11 +563,11 @@ lcd.setCursor(10,1);
 if (estado_menu == n+1) lcd.print (carga);
 else if (estado_menu == n+2)
 {	lcd.setCursor(2,1);
-	lcd.print (cores[RED]);
+	lcd.print (ldr_cor[RED]);
 	lcd.setCursor(7,1);
-	lcd.print (cores[GREEN]);
+	lcd.print (ldr_cor[GREEN]);
 	lcd.setCursor(12,1);
-	lcd.print (cores[BLUE]);
+	lcd.print (ldr_cor[BLUE]);
 }
 else if (estado_menu == n+3) lcd.print (ldr_valor);
 else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
@@ -1151,11 +1165,11 @@ else if (estado_menu == 32)
 {
 lcd.print ("R    G    B     ");
 lcd.setCursor(2,1);
-lcd.print (cores[RED]);
+lcd.print (ldr_cor[RED]);
 lcd.setCursor(7,1);
-lcd.print (cores[GREEN]);
+lcd.print (ldr_cor[GREEN]);
 lcd.setCursor(12,1);
-lcd.print (cores[BLUE]);
+lcd.print (ldr_cor[BLUE]);
 
 if (botao == CIMA)
 {
@@ -1865,17 +1879,16 @@ int move(entrada a)
 
 int move_auto()
 {
-	int dir = FRENTE;
-	int tmp = T_MAX_ANDAR;
-	int estado = 0;
+	switch (estado_motor) {
+		case 0:	// Anda por 10 minutos
+		if (anda(FRENTE,T_MAX_ANDAR) == 1) return 1;
+		else if (objeto) estado_motor = 1;
+		break;
 
-	anda(dir,tmp);
+		case 1: // Analiza objeto
 
-	if (estado == 0)
-	{
-		dir = FRENTE;
-		tmp = T_MAX_ANDAR;
 	}
+
 	return 0;
 }
 
@@ -1917,7 +1930,8 @@ void aciona_luz(bool r, bool g, bool b)
 	else digitalWrite(LED_BLU_PIN, LOW);
 }
 
-int media_sensor(int n){
+int media_sensor(int n)
+{
 	int total = 0;
 	for (int i = 0;i < n;i++)
 	{
@@ -1929,13 +1943,7 @@ int media_sensor(int n){
 
 bool ve_objeto()
 {
-	// int sinal;
-	// aciona_luz(true, true, true);
-	// delay(200);
-	// sinal = media_sensor(5);
-	// aciona_luz(false, false, false);
-
-	if (ldr_valor < ldr_limiar) return false;
+	if (ldr_valor > ldr_limiar) return false;
 	else return true;
 }
 
@@ -1964,20 +1972,20 @@ void ve_cor()
 	lcd.setCursor(13,1);	lcd.print (".");
 	delay(200);
 
-	cinza = branco[RED]-preto[RED];
-	cores[RED] 		= (r - preto[RED])/(cinza)*100;
+	cinza = ldr_branco[RED]-ldr_preto[RED];
+	ldr_cor[RED] 		= (r - ldr_preto[RED])/(cinza)*100;
 
 	lcd.setCursor(14,1);	lcd.print (".");
 	delay(200);
 
-	cinza = branco[GREEN]-preto[GREEN];
-	cores[GREEN] 	= (g - preto[GREEN])/(cinza)*100;
+	cinza = ldr_branco[GREEN]-ldr_preto[GREEN];
+	ldr_cor[GREEN] 	= (g - ldr_preto[GREEN])/(cinza)*100;
 
 	lcd.setCursor(15,1);	lcd.print (".");
 	delay(200);
 
-	cinza = branco[BLUE]-preto[BLUE];
-	cores[BLUE] 	= (b - preto[BLUE])/(cinza)*100;
+	cinza = ldr_branco[BLUE]-ldr_preto[BLUE];
+	ldr_cor[BLUE] 	= (b - ldr_preto[BLUE])/(cinza)*100;
 }
 
 void balanco_branco()
@@ -1985,19 +1993,19 @@ void balanco_branco()
 	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
 
 	aciona_luz(true, false, false);
-	branco[RED] = media_sensor(5);
+	ldr_branco[RED] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(11,1);	lcd.print (".");
 
 	aciona_luz(false, true, false);
-	branco[GREEN] = media_sensor(5);
+	ldr_branco[GREEN] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(12,1);	lcd.print (".");
 
 	aciona_luz(false, false, true);
-	branco[BLUE] = media_sensor(5);
+	ldr_branco[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(13,1);	lcd.print (".");
@@ -2013,19 +2021,19 @@ void balanco_preto()
 	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
 
 	aciona_luz(true, false, false);
-	preto[RED] = media_sensor(5);
+	ldr_preto[RED] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(11,1);	lcd.print (".");
 
 	aciona_luz(false, true, false);
-	preto[GREEN] = media_sensor(5);
+	ldr_preto[GREEN] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(12,1);	lcd.print (".");
 
 	aciona_luz(false, false, true);
-	preto[BLUE] = media_sensor(5);
+	ldr_preto[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(13,1);	lcd.print (".");
