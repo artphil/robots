@@ -28,7 +28,7 @@ SUMARIO do MENU
 --|- Matheus Santos
 --------------------------------------------*/
 
-/* bibliotecas */
+/* Configuracao de ambiente */
 
 #include <LiquidCrystal.h>
 #include <Adafruit_MotorShield.h>
@@ -166,6 +166,7 @@ entrada quadrado;
 // Leds e sensores
 int 	led;			// Led aceso;
 int 	ldr_valor;		// Intencidade de luz captada;
+int 	ldr_limiar;		// Valor limite para ver objeto;
 int 	cores[3];		// Taxa de reflexao de cor (Red Green Blue)
 int 	branco[3];		// Taxa de reflexao de cor (Red Green Blue)
 int 	preto[3];		// Taxa de reflexao de cor (Red Green Blue)
@@ -325,8 +326,8 @@ void atualiza () // Atualiza as constantes utilizadas
 	botao = 0;
 	int sensorValue = analogRead(A0);
 	carga = sensorValue * (5.0 / 1023.0);
-	ldr_valor = media_sensor(5);
-	if (ligado) objeto = ve_objeto();
+	ldr_valor = analogRead(LDR_PIN);
+	objeto = ve_objeto();
 }
 
 int verifica_botao () // Identifica qual botao foi acionado
@@ -411,18 +412,25 @@ void m_inicio(int n) // MENU - Nivel 1
 	lcd.setCursor(0,1);
 	lcd.print (subtitulo[estado_menu%10]);
 
-	if (botao == CIMA)
+	switch (botao)
 	{
+		case CIMA:
 		estado_menu--;
 		if (estado_menu < n) estado_menu = (n+ns)-1;
-	}
-	else if (botao == BAIXO)
-	{
+		break;
+
+		case BAIXO:
 		estado_menu++;
 		if (estado_menu >= (n+ns)) estado_menu = n;
-	}
-	else if (botao == SELECIONA)
-	{
+		break;
+
+		case DIREITA:
+		break;
+
+		case ESQUERDA:
+		break;
+
+		case SELECIONA:
 		if (estado_menu == 1)
 		{
 			mov = 1;
@@ -430,6 +438,7 @@ void m_inicio(int n) // MENU - Nivel 1
 			estado_liga = 0;
 		}
 		estado_menu = (estado_menu*10)+1;
+		break;
 	}
 }
 
@@ -462,119 +471,125 @@ void m_configurar(int n) // Configurar - nivel 2
 	else if (estado_menu == n+2) lcd.print (pot_motor_m1);
 	else if (estado_menu == n+3) lcd.print (pot_motor_m2);
 
-	if (botao == CIMA)
+	switch (botao)
 	{
+		case CIMA:
 		estado_menu--;
 		if (estado_menu < n) estado_menu = (n+ns)-1;
-	}
-	else if (botao == BAIXO)
-	{
+		break;
+
+		case BAIXO:
 		estado_menu++;
 		if (estado_menu >= (n+ns)) estado_menu = n;
-	}
-	else if (botao == DIREITA)
-	{
+		break;
+
+		case DIREITA:
 		if (estado_menu == n+1)
-		if (tdt < 10000) tdt += 10;
-
+		{	if (tdt < 10000) tdt += 10;
+		}
 		else if (estado_menu == n+2)
-		if (pot_motor_m1 < 255) pot_motor_m1++;
-
+		{	if (pot_motor_m1 < 255) pot_motor_m1++;
+		}
 		else if (estado_menu == n+3)
-		if (pot_motor_m2 < 255) pot_motor_m2++;
-	}
-	else if (botao == ESQUERDA)
-	{
+		{	if (pot_motor_m2 < 255) pot_motor_m2++;
+		}
+		break;
+
+		case ESQUERDA:
 		if (estado_menu == n+1)
-		if (tdt > 0) tdt -= 10;
-
+		{	if (tdt > 0) tdt -= 10;
+		}
 		else if (estado_menu == n+2)
-		if (pot_motor_m1 > 0) pot_motor_m1--;
-
+		{	if (pot_motor_m1 > 0) pot_motor_m1--;
+		}
 		else if (estado_menu == n+3)
-		if (pot_motor_m2 > 0) pot_motor_m2--;
-	}
-	else if (botao == SELECIONA)
-	{
+		{	if (pot_motor_m2 > 0) pot_motor_m2--;
+		}
+		break;
+
+		case SELECIONA:
 		if (estado_menu == n)
-		estado_menu = (estado_menu/10);
-
+		{	estado_menu = (estado_menu/10);
+		}
 		else if (estado_menu == n+4)
-		{
-			balanco_branco();
+		{	balanco_branco();
 			estado_menu = (estado_menu/10);
 		}
 		else if (estado_menu == n+5)
-		{
-			balanco_preto();
+		{	balanco_preto();
 			estado_menu = (estado_menu/10);
 		}
+		break;
 	}
 }
 
 void m_informacoes(int n) // Informacoes - nivel 2
+{	String titulo = "  INFORMACOES  ";
+int ns = 6;
+String subtitulo[ns] =
+{	"Voltar          ",
+"Bateria        v",
+"R    G    B     ",
+"LDR             ",
+"Objeto          ",
+"Tempo         s",
+};
+
+if ((millis() - t_menu) > T_MAX_MENU)
+{	t_menu = millis();
+	botao = verifica_botao();
+}
+
+lcd.setCursor(0,0);
+lcd.print (titulo);
+lcd.setCursor(0,1);
+lcd.print (subtitulo[estado_menu%10]);
+lcd.setCursor(10,1);
+
+if (estado_menu == n+1) lcd.print (carga);
+else if (estado_menu == n+2)
+{	lcd.setCursor(2,1);
+	lcd.print (cores[RED]);
+	lcd.setCursor(7,1);
+	lcd.print (cores[GREEN]);
+	lcd.setCursor(12,1);
+	lcd.print (cores[BLUE]);
+}
+else if (estado_menu == n+3) lcd.print (ldr_valor);
+else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+else if (estado_menu == n+5) lcd.print (millis());
+
+switch (botao)
 {
-	String titulo = "  INFORMACOES  ";
-	int ns = 6;
-	String subtitulo[ns] = {
-		"Voltar          ",
-		"Bateria        v",
-		"R    G    B     ",
-		"LDR             ",
-		"Objeto          ",
-		"Tempo         s",
-	};
+	case CIMA:
+	estado_menu--;
+	if (estado_menu < n) estado_menu = (n+ns)-1;
+	break;
 
-	if ((millis() - t_menu) > T_MAX_MENU)
-	{
-		t_menu = millis();
-		botao = verifica_botao();
-	}
+	case BAIXO:
+	estado_menu++;
+	if (estado_menu >= (n+ns)) estado_menu = n;
+	break;
 
-	lcd.setCursor(0,0);
-	lcd.print (titulo);
-	lcd.setCursor(0,1);
-	lcd.print (subtitulo[estado_menu%10]);
-	lcd.setCursor(10,1);
+	case DIREITA:
+	break;
 
-	if (estado_menu == n+1) lcd.print (carga);
-	else if (estado_menu == n+2)
-	{
-		lcd.setCursor(2,1);
-		lcd.print (cores[RED]);
-		lcd.setCursor(7,1);
-		lcd.print (cores[GREEN]);
-		lcd.setCursor(12,1);
-		lcd.print (cores[BLUE]);
-	}
-	else if (estado_menu == n+3) lcd.print (ldr_valor);
-	else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
-	else if (estado_menu == n+5) lcd.print (millis());
+	case ESQUERDA:
+	break;
 
-	if (botao == CIMA)
-	{
-		estado_menu--;
-		if (estado_menu < n) estado_menu = (n+ns)-1;
-	}
-	else if (botao == BAIXO)
-	{
-		estado_menu++;
-		if (estado_menu >= (n+ns)) estado_menu = n;
-	}
-	else if (botao == SELECIONA)
-	{
-		if (estado_menu == n)
-		estado_menu = (estado_menu/10);
-
-		else if (estado_menu == n+2) ve_cor();
-	}
+	case SELECIONA:
+	if (estado_menu == n) estado_menu = (estado_menu/10);
+	else if (estado_menu == n+2) ve_cor();
+	break;
+}
 }
 
 void m_testes(int n) // Testes - nivel 2
 {
 	String titulo = "     TESTES     ";
 	int ns = 5;
-	String subtitulo[ns] = {
+	String subtitulo[ns] =
+	{
 		"Voltar          ",
 		"Motores auto    ",
 		"F     Anda     T",
@@ -620,31 +635,31 @@ void m_testes(int n) // Testes - nivel 2
 			lcd.print ("< *R* *G* *B*  >");
 			aciona_luz(true, true, true);
 		}
-
 	}
 
-	if (botao == CIMA)
+	switch (botao)
 	{
+		case CIMA:
 		estado_menu--;
 		if (estado_menu < n) estado_menu = (n+ns)-1;
-	}
-	else if (botao == BAIXO)
-	{
+		break;
+
+		case BAIXO:
 		estado_menu++;
 		if (estado_menu >= (n+ns)) estado_menu = n;
-	}
-	else if (botao == DIREITA)
-	{
-		if (estado_menu == n+2)			anda(TRAS, T_MAX_MENU);
+		break;
+
+		case DIREITA:
+		if (estado_menu == n+2)	anda(TRAS, T_MAX_MENU);
 		else if (estado_menu == n+3)	anda(DIREITA, T_MAX_MENU);
 		else if (estado_menu == n+4)
 		{
 			if (led < 4) led++;
 			else led = 0;
 		}
-	}
-	else if (botao == ESQUERDA)
-	{
+		break;
+
+		case ESQUERDA:
 		if (estado_menu == n+2)			anda(FRENTE, T_MAX_MENU);
 		else if (estado_menu == n+3)	anda(ESQUERDA, T_MAX_MENU);
 		else if (estado_menu == n+4)
@@ -652,12 +667,10 @@ void m_testes(int n) // Testes - nivel 2
 			if (led > 0) led--;
 			else led = 4;
 		}
-	}
-	else if (botao == SELECIONA)
-	{
-		if (estado_menu == n)
-		estado_menu = (estado_menu/10);
+		break;
 
+		case SELECIONA:
+		if (estado_menu == n) estado_menu = (estado_menu/10);
 		else if (estado_menu == n+1)
 		{
 			estado_menu = 10;
@@ -665,6 +678,7 @@ void m_testes(int n) // Testes - nivel 2
 			t_liga = millis();
 			estado_liga = 0;
 		}
+		break;
 	}
 }
 
@@ -672,7 +686,8 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 {
 	String titulo = "   PRE  MOVES   ";
 	int ns = 4;
-	String subtitulo[ns] = {
+	String subtitulo[ns] =
+	{
 		"Voltar          ",
 		"Vai Vem         ",
 		"Triangulo       ",
@@ -689,29 +704,35 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 	lcd.print (titulo);
 	lcd.setCursor(0,1);
 	lcd.print (subtitulo[estado_menu%10]);
+	mov = (estado_menu%10)+2;
 
-	if (botao == CIMA)
+	switch (botao)
 	{
+		case CIMA:
 		estado_menu--;
 		if (estado_menu < n) estado_menu = (n+ns)-1;
-		mov = (estado_menu%10)+2;
-	}
-	else if (botao == BAIXO)
-	{
+		break;
+
+		case BAIXO:
 		estado_menu++;
 		if (estado_menu >= (n+ns)) estado_menu = n;
-		mov = (estado_menu%10)+2;
-	}
-	else if (botao == SELECIONA)
-	{
-		if (estado_menu == n)
-		estado_menu = (estado_menu/10);
+		break;
+
+		case DIREITA:
+		break;
+
+		case ESQUERDA:
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n) estado_menu = (estado_menu/10);
 		else
 		{
 			estado_menu = 10;
 			t_liga = millis();
 			estado_liga = 0;
 		}
+		break;
 	}
 }
 
@@ -720,7 +741,8 @@ void m_creditos(int n) // Creditos - nivel 2
 	String titulo = "   PRE  MOVES   ";
 	int ns = 4;
 	int tam = 70;
-	char subtitulo[ns][tam] = {
+	char subtitulo[ns][tam] =
+	{
 		" Arthur Phillip Silva - Hacker Verde - Sistemas de Informacao         ",
 		" Bernardo Sanches - Lego Builder Azul - Engenharia Aeroespacial       ",
 		" Gustavo Duarte - Eletrician Vermelho - Eng. Controle e Automacao     ",
@@ -741,7 +763,7 @@ void m_creditos(int n) // Creditos - nivel 2
 		lcd.setCursor(0,1);
 		lcd.print ("Voltar          ");
 	}
-	if (desliza)
+	else if (desliza)
 	{
 		if ((millis() - t_liga) > T_NOME)
 		{
@@ -750,30 +772,37 @@ void m_creditos(int n) // Creditos - nivel 2
 			if (letra >= tam) letra = 0;
 		}
 	}
+
 	for (int l=0; l<16; l++)
 	{
 		lcd.setCursor(l,1);
 		lcd.print (subtitulo[estado_menu%10][(letra+l)%tam]);
 	}
 
-	if (botao == CIMA)
+	switch (botao)
 	{
+		case CIMA:
 		estado_menu--;
 		if (estado_menu < n) estado_menu = (n+ns)-1;
-	}
-	else if (botao == BAIXO)
-	{
+		letra = 0;
+		break;
+
+		case BAIXO:
 		estado_menu++;
 		if (estado_menu >= (n+ns)) estado_menu = n;
-	}
-	else if (botao == SELECIONA)
-	{
-		if (estado_menu == n)
-		estado_menu = (estado_menu/10);
-		else
-		{
-			desliza = !desliza;
-		}
+		letra = 0;
+		break;
+
+		case DIREITA:
+		break;
+
+		case ESQUERDA:
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n) estado_menu = (estado_menu/10);
+		else desliza = !desliza;
+		break;
 	}
 }
 
@@ -788,953 +817,954 @@ void menu() // Gerenciador do menu e suas opcoes
 	else if (estado_menu < 70) m_creditos(60);
 }
 
-
-void menu2() // Gerenciador do menu e suas opcoes
+/*inicio menu
+void menu() // Gerenciador do menu e suas opcoes
 {
-	int botao;
-	if ((millis() - t_menu) > T_MAX_MENU)
-	{
-		t_menu = millis();
-		botao = verifica_botao();
-	}
-
-	if (estado_menu < 10)	// Nivel 1
-	{
-		lcd.setCursor(0,0);
-		lcd.print (NOME_ROBO);
-		lcd.setCursor(0,1);
-
-		if (estado_menu == 0)	// Mascara
-		{
-			lcd.print ("                ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 9;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 1;
-			}
-		}
-		else if (estado_menu == 1)
-		{
-			lcd.print ("Iniciar         ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 0;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 2;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 11;
-				t_liga = millis();
-				estado_liga = 0;
-			}
-		}
-		else if (estado_menu == 2)
-		{
-			lcd.print ("Configurar      ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 1;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 3;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 21;
-			}
-		}
-		else if (estado_menu == 3)
-		{
-			lcd.print ("Informacoes     ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 2;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 4;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 31;
-			}
-		}
-		else if (estado_menu == 4)
-		{
-			lcd.print ("Testes          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 3;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 9;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 41;
-			}
-		}
-		else if (estado_menu == 5)
-		{
-			lcd.print ("Pre moves       ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 4;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 9;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 51;
-			}
-		}
-		else if (estado_menu == 9)
-		{
-			lcd.print ("Creditos        ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 5;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 0;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 91;
-				t_liga = millis();
-			}
-		}
-	}
-	else if (estado_menu < 20) // Iniciar - nivel 2
-	{
-		if (estado_menu == 11)
-		{
-			lcd.setCursor(0,0);
-			lcd.print (NOME_ROBO);
-			lcd.setCursor(0,1);
-
-			if ((millis() - t_liga) > 1000)
-			{
-				t_liga = millis();
-				estado_liga += 1;
-			}
-
-			if (estado_liga < 4)
-			{
-				lcd.print ("Iniciando em    ");
-				lcd.setCursor(13,1);
-				lcd.print (3 - estado_liga);
-			}
-			else if (estado_liga < 5)
-			{
-				if (!ligado)
-				{
-					lcd.print ("Morfando        ");
-					ligado 	= true;
-					mov 	= 1;
-					estado_motor = 0;
-					t_motor = millis();
-					estado_liga += 1;
-				}
-				else
-				{
-					estado_menu = 0;
-				}
-			}
-			else if (estado_liga < 10)
-			{
-				lcd.setCursor((estado_liga+4),1);
-				lcd.print (".");
-			}
-			else estado_menu = 0;
-		}
-	}
-	else if (estado_menu < 30) // Configurar - nivel 2
-	{
-		lcd.setCursor(0,0);
-		lcd.print ("   CONFIGURAR   ");
-		lcd.setCursor(0,1);
-
-		if (estado_menu == 21)
-		{
-			lcd.print ("  TDT  -       +");
-			lcd.setCursor(10,1);
-			lcd.print (tdt);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 29;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 22;
-			}
-			else if (botao == DIREITA)
-			{
-				// if (tdt < 10000)
-				tdt += 10;
-			}
-			else if (botao == ESQUERDA)
-			{
-				if (tdt > 0) tdt -= 10;
-			}
-		}
-		else if (estado_menu == 22)
-		{
-			lcd.print ("pot m1 -       +");
-			lcd.setCursor(10,1);
-			lcd.print (pot_motor_m1);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 21;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 23;
-			}
-			else if (botao == DIREITA)
-			{
-				if (pot_motor_m1 < 255) pot_motor_m1++;
-			}
-			else if (botao == ESQUERDA)
-			{
-				if (pot_motor_m1 > 0) pot_motor_m1--;
-			}
-		}
-		else if (estado_menu == 23)
-		{
-			lcd.print ("pot m2 -       +");
-			lcd.setCursor(10,1);
-			lcd.print (pot_motor_m2);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 22;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 24;
-			}
-			else if (botao == DIREITA)
-			{
-				if (pot_motor_m2 < 255) pot_motor_m2++;
-			}
-			else if (botao == ESQUERDA)
-			{
-				if (pot_motor_m2 > 0) pot_motor_m2--;
-			}
-		}
-		else if (estado_menu == 24)
-		{
-			lcd.print ("Balanco branco  ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 23;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 25;
-			}
-			else if (botao == SELECIONA)
-			{
-				balanco_branco();
-				estado_menu = 2;
-			}
-		}
-		else if (estado_menu == 25)
-		{
-			lcd.print ("Balanco preto   ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 24;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 29;
-			}
-			else if (botao == SELECIONA)
-			{
-				balanco_preto();
-				estado_menu = 2;
-			}
-		}
-		else if (estado_menu == 29)
-		{
-			lcd.print ("Voltar          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 25;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 21;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 2;
-			}
-		}
-	}
-	else if (estado_menu < 40) // Informacoes - nivel 2
-	{
-		lcd.setCursor(0,0);
-		lcd.print ("  INFORMACOES  ");
-		lcd.setCursor(0,1);
-		if (estado_menu == 31)
-		{
-			lcd.print ("Bateria        v");
-			lcd.setCursor(11,1);
-			lcd.print (carga);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 39;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 32;
-			}
-
-		}
-		else if (estado_menu == 32)
-		{
-			lcd.print ("R    G    B     ");
-			lcd.setCursor(2,1);
-			lcd.print (cores[RED]);
-			lcd.setCursor(7,1);
-			lcd.print (cores[GREEN]);
-			lcd.setCursor(12,1);
-			lcd.print (cores[BLUE]);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 31;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 33;
-			}
-			else if (botao == SELECIONA)
-			{
-				ve_cor();
-			}
-
-		}
-
-		if (estado_menu == 33)
-		{
-			lcd.print ("LDR             ");
-			lcd.setCursor(5,1);
-			lcd.print (ldr_valor);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 32;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 34;
-			}
-
-		}
-		if (estado_menu == 34)
-		{
-			lcd.print ("Objeto          ");
-			lcd.setCursor(7,1);
-			lcd.print (objeto);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 33;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 35;
-			}
-
-		}
-		else if (estado_menu == 35)
-		{
-			lcd.print ("Tempo         s");
-			lcd.setCursor(7,1);
-			lcd.print (millis());
-
-			if (botao == CIMA)
-			{
-				estado_menu = 34;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 39;
-			}
-
-		}
-		else if (estado_menu == 39)
-		{
-			lcd.print ("Voltar          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 34;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 31;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 3;
-			}
-		}
-	}
-	else if (estado_menu < 50) // Testes - nivel 2
-	{
-		lcd.setCursor(0,0);
-		lcd.print ("     TESTES     ");
-		lcd.setCursor(0,1);
-
-		if (estado_menu == 41)
-		{
-			lcd.print ("Motores auto     ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 49;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 42;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 411;
-				t_liga = millis();
-				estado_liga = 0;
-			}
-		}
-		else if (estado_menu == 42)
-		{
-			lcd.print ("F     Anda     T");
-			lcd.setCursor(10,1);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 41;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 43;
-			}
-			else if (botao == DIREITA)
-			{
-				aciona_motor(-1,-1);
-				delay(T_MAX_MENU);
-			}
-			else if (botao == ESQUERDA)
-			{
-				aciona_motor(1,1);
-				delay(T_MAX_MENU);
-			}
-			else
-			{
-				aciona_motor(0,0);
-			}
-		}
-		else if (estado_menu == 43)
-		{
-			lcd.print ("E     Gira     D");
-			lcd.setCursor(10,1);
-
-			if (botao == CIMA)
-			{
-				estado_menu = 42;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 44;
-			}
-			else if (botao == DIREITA)
-			{
-				aciona_motor(1,-1);
-				delay(T_MAX_MENU);
-			}
-			else if (botao == ESQUERDA)
-			{
-				aciona_motor(-1,1);
-				delay(T_MAX_MENU);
-			}
-			else
-			{
-				aciona_motor(0,0);
-			}
-		}
-		else if (estado_menu == 44)
-		{
-			if (led == 0)
-			{
-				lcd.print ("<   R  G  B    >");
-				aciona_luz(false, false, false);
-			}
-			else if (led == 1)
-			{
-				lcd.print ("<  *R* G  B    >");
-				aciona_luz(true, false, false);
-			}
-			else if (led == 2)
-			{
-				lcd.print ("<   R *G* B    >");
-				aciona_luz(false, true, false);
-			}
-			else if (led == 3)
-			{
-				lcd.print ("<   R  G *B*   >");
-				aciona_luz(false, false, true);
-			}
-			else if (led == 4)
-			{
-				lcd.print ("<  *R**G**B*   >");
-				aciona_luz(true, true, true);
-			}
-
-			if (botao == CIMA)
-			{
-				estado_menu = 43;
-				aciona_luz(false, false, false);
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 49;
-				aciona_luz(false, false, false);
-			}
-			else if (botao == DIREITA)
-			{
-				if (led < 4) led++;
-				else led = 0;
-			}
-			else if (botao == ESQUERDA)
-			{
-				if (led > 0) led--;
-				else led = 4;
-			}
-		}
-		else if (estado_menu == 49)
-		{
-			lcd.print ("Voltar          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 44;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 41;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 4;
-			}
-		}
-	}
-	else if (estado_menu < 60) // Pre moves - nivel 2
-	{
-		lcd.setCursor(0,0);
-		lcd.print ("   PRE  MOVES   ");
-		lcd.setCursor(0,1);
-
-		if (estado_menu == 51)
-		{
-			lcd.print ("Vai Vem         ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 59;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 52;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 511;
-				t_liga = millis();
-				estado_liga = 0;
-			}
-		}
-		else if (estado_menu == 52)
-		{
-			lcd.print ("Triangulo       ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 51;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 53;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 521;
-				t_liga = millis();
-				estado_liga = 0;
-			}
-		}
-		else if (estado_menu == 53)
-		{
-			lcd.print ("Quadrado         ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 52;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 59;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 531;
-				t_liga = millis();
-				estado_liga = 0;
-			}
-		}
-		else if (estado_menu == 59)
-		{
-			lcd.print ("Voltar          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 53;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 51;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 5;
-			}
-		}
-	}
-	else if (estado_menu < 100) // Creditos - nivel 2
-	{
-		lcd.setCursor(0,0);
-		lcd.print ("    CREDITOS    ");
-		lcd.setCursor(0,1);
-
-		if (estado_menu == 91)
-		{
-			int tam = strlen(arthur);
-			if (desliza)
-			{
-				if ((millis() - t_liga) > T_NOME)
-				{
-					t_liga = millis();
-					letra += 1;
-					if (letra >= tam) letra = 0;
-				}
-			}
-			for (int l=0; l<16; l++)
-			{
-				lcd.setCursor(l,1);
-				lcd.print (arthur[(letra+l)%tam]);
-			}
-
-			if (botao == CIMA)
-			{
-				estado_menu = 99;
-				letra = 0;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 92;
-				letra = 0;
-			}
-			else if (botao == SELECIONA)
-			{
-				desliza = !desliza;
-			}
-		}
-		else if (estado_menu == 92)
-		{
-			int tam = strlen(bernardo);
-			if (desliza)
-			{
-				if ((millis() - t_liga) > T_NOME)
-				{
-					t_liga = millis();
-					letra += 1;
-					if (letra >= tam) letra = 0;
-				}
-			}
-			for (int l=0; l<16; l++)
-			{
-				lcd.setCursor(l,1);
-				lcd.print (bernardo[(letra+l)%tam]);
-			}
-
-			if (botao == CIMA)
-			{
-				estado_menu = 91;
-				letra = 0;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 93;
-				letra = 0;
-			}
-			else if (botao == SELECIONA)
-			{
-				desliza = !desliza;
-			}
-		}
-		else if (estado_menu == 93)
-		{
-			int tam = strlen(gustavo);
-			if (desliza)
-			{
-				if ((millis() - t_liga) > T_NOME)
-				{
-					t_liga = millis();
-					letra += 1;
-					if (letra >= tam) letra = 0;
-				}
-			}
-			for (int l=0; l<16; l++)
-			{
-				lcd.setCursor(l,1);
-				lcd.print (gustavo[(letra+l)%tam]);
-			}
-
-			if (botao == CIMA)
-			{
-				estado_menu = 92;
-				letra = 0;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 94;
-				letra = 0;
-			}
-			else if (botao == SELECIONA)
-			{
-				desliza = !desliza;
-			}
-		}
-		else if (estado_menu == 94)
-		{
-			int tam = strlen(matheus);
-			if (desliza)
-			{
-				if ((millis() - t_liga) > T_NOME)
-				{
-					t_liga = millis();
-					letra += 1;
-					if (letra >= tam) letra = 0;
-				}
-			}
-			for (int l=0; l<16; l++)
-			{
-				lcd.setCursor(l,1);
-				lcd.print (matheus[(letra+l)%tam]);
-			}
-
-			if (botao == CIMA)
-			{
-				estado_menu = 93;
-				letra = 0;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 99;
-				letra = 0;
-			}
-			else if (botao == SELECIONA)
-			{
-				desliza = !desliza;
-			}
-		}
-		else if (estado_menu == 99)
-		{
-			lcd.print ("Voltar          ");
-
-			if (botao == CIMA)
-			{
-				estado_menu = 94;
-			}
-			else if (botao == BAIXO)
-			{
-				estado_menu = 91;
-			}
-			else if (botao == SELECIONA)
-			{
-				estado_menu = 9;
-			}
-		}
-	}
-	else if (estado_menu < 500) // Teste - Motor - nivel 3
-	{
-		if (estado_menu == 411)
-		{
-			lcd.setCursor(0,1);
-			lcd.print ("Iniciando em    ");
-
-			if ((millis() - t_liga) > 1000)
-			{
-				t_liga = millis();
-				estado_liga += 1;
-			}
-
-			if (estado_liga < 4)
-			{
-				lcd.setCursor(13,1);
-				lcd.print (3 - estado_liga);
-			}
-			else if (estado_liga < 5)
-			{
-				if (!ligado)
-				{
-					ligado 	= true;
-					mov 	= 2;
-					estado_motor = 0;
-					t_motor = millis();
-					estado_liga += 1;
-				}
-				else
-				{
-					estado_menu = 0;
-				}
-			}
-			else estado_menu = 0;
-		}
-
-
-	}
-	else if (estado_menu < 600) // Pre move - nivel 3
-	{
-		if (estado_menu == 511) // Vai-vem
-		{
-			lcd.setCursor(0,1);
-			lcd.print ("Iniciando em    ");
-
-			if ((millis() - t_liga) > 1000)
-			{
-				t_liga = millis();
-				estado_liga += 1;
-			}
-
-			if (estado_liga < 4)
-			{
-				lcd.setCursor(13,1);
-				lcd.print (3 - estado_liga);
-			}
-			else if (estado_liga < 5)
-			{
-				if (!ligado)
-				{
-					ligado 	= true;
-					mov 	= 3;
-					estado_motor = 0;
-					t_motor = millis();
-					estado_liga += 1;
-				}
-				else
-				{
-					estado_menu = 0;
-				}
-			}
-			else estado_menu = 0;
-		}
-		if (estado_menu == 521) // Triangulo
-		{
-			lcd.setCursor(0,1);
-			lcd.print ("Iniciando em    ");
-
-			if ((millis() - t_liga) > 1000)
-			{
-				t_liga = millis();
-				estado_liga += 1;
-			}
-
-			if (estado_liga < 4)
-			{
-				lcd.setCursor(13,1);
-				lcd.print (3 - estado_liga);
-			}
-			else if (estado_liga < 5)
-			{
-				if (!ligado)
-				{
-					ligado 	= true;
-					mov 	= 4;
-					estado_motor = 0;
-					t_motor = millis();
-					estado_liga += 1;
-				}
-				else
-				{
-					estado_menu = 0;
-				}
-			}
-			else estado_menu = 0;
-		}
-		if (estado_menu == 531) // Quadrado
-		{
-			lcd.setCursor(0,1);
-			lcd.print ("Iniciando em    ");
-
-			if ((millis() - t_liga) > 1000)
-			{
-				t_liga = millis();
-				estado_liga += 1;
-			}
-
-			if (estado_liga < 4)
-			{
-				lcd.setCursor(13,1);
-				lcd.print (3 - estado_liga);
-			}
-			else if (estado_liga < 5)
-			{
-				if (!ligado)
-				{
-					ligado 	= true;
-					mov 	= 5;
-					estado_motor = 0;
-					t_motor = millis();
-					estado_liga += 1;
-				}
-				else
-				{
-					estado_menu = 0;
-				}
-			}
-			else estado_menu = 0;
-		}
-	}
+int botao;
+if ((millis() - t_menu) > T_MAX_MENU)
+{
+t_menu = millis();
+botao = verifica_botao();
 }
+
+if (estado_menu < 10)	// Nivel 1
+{
+lcd.setCursor(0,0);
+lcd.print (NOME_ROBO);
+lcd.setCursor(0,1);
+
+if (estado_menu == 0)	// Mascara
+{
+lcd.print ("                ");
+
+if (botao == CIMA)
+{
+estado_menu = 9;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 1;
+}
+}
+else if (estado_menu == 1)
+{
+lcd.print ("Iniciar         ");
+
+if (botao == CIMA)
+{
+estado_menu = 0;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 2;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 11;
+t_liga = millis();
+estado_liga = 0;
+}
+}
+else if (estado_menu == 2)
+{
+lcd.print ("Configurar      ");
+
+if (botao == CIMA)
+{
+estado_menu = 1;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 3;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 21;
+}
+}
+else if (estado_menu == 3)
+{
+lcd.print ("Informacoes     ");
+
+if (botao == CIMA)
+{
+estado_menu = 2;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 4;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 31;
+}
+}
+else if (estado_menu == 4)
+{
+lcd.print ("Testes          ");
+
+if (botao == CIMA)
+{
+estado_menu = 3;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 9;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 41;
+}
+}
+else if (estado_menu == 5)
+{
+lcd.print ("Pre moves       ");
+
+if (botao == CIMA)
+{
+estado_menu = 4;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 9;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 51;
+}
+}
+else if (estado_menu == 9)
+{
+lcd.print ("Creditos        ");
+
+if (botao == CIMA)
+{
+estado_menu = 5;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 0;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 91;
+t_liga = millis();
+}
+}
+}
+else if (estado_menu < 20) // Iniciar - nivel 2
+{
+if (estado_menu == 11)
+{
+lcd.setCursor(0,0);
+lcd.print (NOME_ROBO);
+lcd.setCursor(0,1);
+
+if ((millis() - t_liga) > 1000)
+{
+t_liga = millis();
+estado_liga += 1;
+}
+
+if (estado_liga < 4)
+{
+lcd.print ("Iniciando em    ");
+lcd.setCursor(13,1);
+lcd.print (3 - estado_liga);
+}
+else if (estado_liga < 5)
+{
+if (!ligado)
+{
+lcd.print ("Morfando        ");
+ligado 	= true;
+mov 	= 1;
+estado_motor = 0;
+t_motor = millis();
+estado_liga += 1;
+}
+else
+{
+estado_menu = 0;
+}
+}
+else if (estado_liga < 10)
+{
+lcd.setCursor((estado_liga+4),1);
+lcd.print (".");
+}
+else estado_menu = 0;
+}
+}
+else if (estado_menu < 30) // Configurar - nivel 2
+{
+lcd.setCursor(0,0);
+lcd.print ("   CONFIGURAR   ");
+lcd.setCursor(0,1);
+
+if (estado_menu == 21)
+{
+lcd.print ("  TDT  -       +");
+lcd.setCursor(10,1);
+lcd.print (tdt);
+
+if (botao == CIMA)
+{
+estado_menu = 29;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 22;
+}
+else if (botao == DIREITA)
+{
+// if (tdt < 10000)
+tdt += 10;
+}
+else if (botao == ESQUERDA)
+{
+if (tdt > 0) tdt -= 10;
+}
+}
+else if (estado_menu == 22)
+{
+lcd.print ("pot m1 -       +");
+lcd.setCursor(10,1);
+lcd.print (pot_motor_m1);
+
+if (botao == CIMA)
+{
+estado_menu = 21;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 23;
+}
+else if (botao == DIREITA)
+{
+if (pot_motor_m1 < 255) pot_motor_m1++;
+}
+else if (botao == ESQUERDA)
+{
+if (pot_motor_m1 > 0) pot_motor_m1--;
+}
+}
+else if (estado_menu == 23)
+{
+lcd.print ("pot m2 -       +");
+lcd.setCursor(10,1);
+lcd.print (pot_motor_m2);
+
+if (botao == CIMA)
+{
+estado_menu = 22;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 24;
+}
+else if (botao == DIREITA)
+{
+if (pot_motor_m2 < 255) pot_motor_m2++;
+}
+else if (botao == ESQUERDA)
+{
+if (pot_motor_m2 > 0) pot_motor_m2--;
+}
+}
+else if (estado_menu == 24)
+{
+lcd.print ("Balanco branco  ");
+
+if (botao == CIMA)
+{
+estado_menu = 23;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 25;
+}
+else if (botao == SELECIONA)
+{
+balanco_branco();
+estado_menu = 2;
+}
+}
+else if (estado_menu == 25)
+{
+lcd.print ("Balanco preto   ");
+
+if (botao == CIMA)
+{
+estado_menu = 24;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 29;
+}
+else if (botao == SELECIONA)
+{
+balanco_preto();
+estado_menu = 2;
+}
+}
+else if (estado_menu == 29)
+{
+lcd.print ("Voltar          ");
+
+if (botao == CIMA)
+{
+estado_menu = 25;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 21;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 2;
+}
+}
+}
+else if (estado_menu < 40) // Informacoes - nivel 2
+{
+lcd.setCursor(0,0);
+lcd.print ("  INFORMACOES  ");
+lcd.setCursor(0,1);
+if (estado_menu == 31)
+{
+lcd.print ("Bateria        v");
+lcd.setCursor(11,1);
+lcd.print (carga);
+
+if (botao == CIMA)
+{
+estado_menu = 39;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 32;
+}
+
+}
+else if (estado_menu == 32)
+{
+lcd.print ("R    G    B     ");
+lcd.setCursor(2,1);
+lcd.print (cores[RED]);
+lcd.setCursor(7,1);
+lcd.print (cores[GREEN]);
+lcd.setCursor(12,1);
+lcd.print (cores[BLUE]);
+
+if (botao == CIMA)
+{
+estado_menu = 31;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 33;
+}
+else if (botao == SELECIONA)
+{
+ve_cor();
+}
+
+}
+
+if (estado_menu == 33)
+{
+lcd.print ("LDR             ");
+lcd.setCursor(5,1);
+lcd.print (ldr_valor);
+
+if (botao == CIMA)
+{
+estado_menu = 32;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 34;
+}
+
+}
+if (estado_menu == 34)
+{
+lcd.print ("Objeto          ");
+lcd.setCursor(7,1);
+lcd.print (objeto);
+
+if (botao == CIMA)
+{
+estado_menu = 33;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 35;
+}
+
+}
+else if (estado_menu == 35)
+{
+lcd.print ("Tempo         s");
+lcd.setCursor(7,1);
+lcd.print (millis());
+
+if (botao == CIMA)
+{
+estado_menu = 34;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 39;
+}
+
+}
+else if (estado_menu == 39)
+{
+lcd.print ("Voltar          ");
+
+if (botao == CIMA)
+{
+estado_menu = 34;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 31;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 3;
+}
+}
+}
+else if (estado_menu < 50) // Testes - nivel 2
+{
+lcd.setCursor(0,0);
+lcd.print ("     TESTES     ");
+lcd.setCursor(0,1);
+
+if (estado_menu == 41)
+{
+lcd.print ("Motores auto     ");
+
+if (botao == CIMA)
+{
+estado_menu = 49;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 42;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 411;
+t_liga = millis();
+estado_liga = 0;
+}
+}
+else if (estado_menu == 42)
+{
+lcd.print ("F     Anda     T");
+lcd.setCursor(10,1);
+
+if (botao == CIMA)
+{
+estado_menu = 41;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 43;
+}
+else if (botao == DIREITA)
+{
+aciona_motor(-1,-1);
+delay(T_MAX_MENU);
+}
+else if (botao == ESQUERDA)
+{
+aciona_motor(1,1);
+delay(T_MAX_MENU);
+}
+else
+{
+aciona_motor(0,0);
+}
+}
+else if (estado_menu == 43)
+{
+lcd.print ("E     Gira     D");
+lcd.setCursor(10,1);
+
+if (botao == CIMA)
+{
+estado_menu = 42;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 44;
+}
+else if (botao == DIREITA)
+{
+aciona_motor(1,-1);
+delay(T_MAX_MENU);
+}
+else if (botao == ESQUERDA)
+{
+aciona_motor(-1,1);
+delay(T_MAX_MENU);
+}
+else
+{
+aciona_motor(0,0);
+}
+}
+else if (estado_menu == 44)
+{
+if (led == 0)
+{
+lcd.print ("<   R  G  B    >");
+aciona_luz(false, false, false);
+}
+else if (led == 1)
+{
+lcd.print ("<  *R* G  B    >");
+aciona_luz(true, false, false);
+}
+else if (led == 2)
+{
+lcd.print ("<   R *G* B    >");
+aciona_luz(false, true, false);
+}
+else if (led == 3)
+{
+lcd.print ("<   R  G *B*   >");
+aciona_luz(false, false, true);
+}
+else if (led == 4)
+{
+lcd.print ("<  *R**G**B*   >");
+aciona_luz(true, true, true);
+}
+
+if (botao == CIMA)
+{
+estado_menu = 43;
+aciona_luz(false, false, false);
+}
+else if (botao == BAIXO)
+{
+estado_menu = 49;
+aciona_luz(false, false, false);
+}
+else if (botao == DIREITA)
+{
+if (led < 4) led++;
+else led = 0;
+}
+else if (botao == ESQUERDA)
+{
+if (led > 0) led--;
+else led = 4;
+}
+}
+else if (estado_menu == 49)
+{
+lcd.print ("Voltar          ");
+
+if (botao == CIMA)
+{
+estado_menu = 44;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 41;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 4;
+}
+}
+}
+else if (estado_menu < 60) // Pre moves - nivel 2
+{
+lcd.setCursor(0,0);
+lcd.print ("   PRE  MOVES   ");
+lcd.setCursor(0,1);
+
+if (estado_menu == 51)
+{
+lcd.print ("Vai Vem         ");
+
+if (botao == CIMA)
+{
+estado_menu = 59;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 52;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 511;
+t_liga = millis();
+estado_liga = 0;
+}
+}
+else if (estado_menu == 52)
+{
+lcd.print ("Triangulo       ");
+
+if (botao == CIMA)
+{
+estado_menu = 51;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 53;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 521;
+t_liga = millis();
+estado_liga = 0;
+}
+}
+else if (estado_menu == 53)
+{
+lcd.print ("Quadrado         ");
+
+if (botao == CIMA)
+{
+estado_menu = 52;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 59;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 531;
+t_liga = millis();
+estado_liga = 0;
+}
+}
+else if (estado_menu == 59)
+{
+lcd.print ("Voltar          ");
+
+if (botao == CIMA)
+{
+estado_menu = 53;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 51;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 5;
+}
+}
+}
+else if (estado_menu < 100) // Creditos - nivel 2
+{
+lcd.setCursor(0,0);
+lcd.print ("    CREDITOS    ");
+lcd.setCursor(0,1);
+
+if (estado_menu == 91)
+{
+int tam = strlen(arthur);
+if (desliza)
+{
+if ((millis() - t_liga) > T_NOME)
+{
+t_liga = millis();
+letra += 1;
+if (letra >= tam) letra = 0;
+}
+}
+for (int l=0; l<16; l++)
+{
+lcd.setCursor(l,1);
+lcd.print (arthur[(letra+l)%tam]);
+}
+
+if (botao == CIMA)
+{
+estado_menu = 99;
+letra = 0;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 92;
+letra = 0;
+}
+else if (botao == SELECIONA)
+{
+desliza = !desliza;
+}
+}
+else if (estado_menu == 92)
+{
+int tam = strlen(bernardo);
+if (desliza)
+{
+if ((millis() - t_liga) > T_NOME)
+{
+t_liga = millis();
+letra += 1;
+if (letra >= tam) letra = 0;
+}
+}
+for (int l=0; l<16; l++)
+{
+lcd.setCursor(l,1);
+lcd.print (bernardo[(letra+l)%tam]);
+}
+
+if (botao == CIMA)
+{
+estado_menu = 91;
+letra = 0;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 93;
+letra = 0;
+}
+else if (botao == SELECIONA)
+{
+desliza = !desliza;
+}
+}
+else if (estado_menu == 93)
+{
+int tam = strlen(gustavo);
+if (desliza)
+{
+if ((millis() - t_liga) > T_NOME)
+{
+t_liga = millis();
+letra += 1;
+if (letra >= tam) letra = 0;
+}
+}
+for (int l=0; l<16; l++)
+{
+lcd.setCursor(l,1);
+lcd.print (gustavo[(letra+l)%tam]);
+}
+
+if (botao == CIMA)
+{
+estado_menu = 92;
+letra = 0;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 94;
+letra = 0;
+}
+else if (botao == SELECIONA)
+{
+desliza = !desliza;
+}
+}
+else if (estado_menu == 94)
+{
+int tam = strlen(matheus);
+if (desliza)
+{
+if ((millis() - t_liga) > T_NOME)
+{
+t_liga = millis();
+letra += 1;
+if (letra >= tam) letra = 0;
+}
+}
+for (int l=0; l<16; l++)
+{
+lcd.setCursor(l,1);
+lcd.print (matheus[(letra+l)%tam]);
+}
+
+if (botao == CIMA)
+{
+estado_menu = 93;
+letra = 0;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 99;
+letra = 0;
+}
+else if (botao == SELECIONA)
+{
+desliza = !desliza;
+}
+}
+else if (estado_menu == 99)
+{
+lcd.print ("Voltar          ");
+
+if (botao == CIMA)
+{
+estado_menu = 94;
+}
+else if (botao == BAIXO)
+{
+estado_menu = 91;
+}
+else if (botao == SELECIONA)
+{
+estado_menu = 9;
+}
+}
+}
+else if (estado_menu < 500) // Teste - Motor - nivel 3
+{
+if (estado_menu == 411)
+{
+lcd.setCursor(0,1);
+lcd.print ("Iniciando em    ");
+
+if ((millis() - t_liga) > 1000)
+{
+t_liga = millis();
+estado_liga += 1;
+}
+
+if (estado_liga < 4)
+{
+lcd.setCursor(13,1);
+lcd.print (3 - estado_liga);
+}
+else if (estado_liga < 5)
+{
+if (!ligado)
+{
+ligado 	= true;
+mov 	= 2;
+estado_motor = 0;
+t_motor = millis();
+estado_liga += 1;
+}
+else
+{
+estado_menu = 0;
+}
+}
+else estado_menu = 0;
+}
+
+
+}
+else if (estado_menu < 600) // Pre move - nivel 3
+{
+if (estado_menu == 511) // Vai-vem
+{
+lcd.setCursor(0,1);
+lcd.print ("Iniciando em    ");
+
+if ((millis() - t_liga) > 1000)
+{
+t_liga = millis();
+estado_liga += 1;
+}
+
+if (estado_liga < 4)
+{
+lcd.setCursor(13,1);
+lcd.print (3 - estado_liga);
+}
+else if (estado_liga < 5)
+{
+if (!ligado)
+{
+ligado 	= true;
+mov 	= 3;
+estado_motor = 0;
+t_motor = millis();
+estado_liga += 1;
+}
+else
+{
+estado_menu = 0;
+}
+}
+else estado_menu = 0;
+}
+if (estado_menu == 521) // Triangulo
+{
+lcd.setCursor(0,1);
+lcd.print ("Iniciando em    ");
+
+if ((millis() - t_liga) > 1000)
+{
+t_liga = millis();
+estado_liga += 1;
+}
+
+if (estado_liga < 4)
+{
+lcd.setCursor(13,1);
+lcd.print (3 - estado_liga);
+}
+else if (estado_liga < 5)
+{
+if (!ligado)
+{
+ligado 	= true;
+mov 	= 4;
+estado_motor = 0;
+t_motor = millis();
+estado_liga += 1;
+}
+else
+{
+estado_menu = 0;
+}
+}
+else estado_menu = 0;
+}
+if (estado_menu == 531) // Quadrado
+{
+lcd.setCursor(0,1);
+lcd.print ("Iniciando em    ");
+
+if ((millis() - t_liga) > 1000)
+{
+t_liga = millis();
+estado_liga += 1;
+}
+
+if (estado_liga < 4)
+{
+lcd.setCursor(13,1);
+lcd.print (3 - estado_liga);
+}
+else if (estado_liga < 5)
+{
+if (!ligado)
+{
+ligado 	= true;
+mov 	= 5;
+estado_motor = 0;
+t_motor = millis();
+estado_liga += 1;
+}
+else
+{
+estado_menu = 0;
+}
+}
+else estado_menu = 0;
+}
+}
+}
+/*fim menu*/
 
 void aciona_motor (int m1, int m2)
 {
@@ -1875,7 +1905,6 @@ int movimentos ()
 
 }
 
-
 void aciona_luz(bool r, bool g, bool b)
 {
 	if (r) digitalWrite(LED_RED_PIN, HIGH);
@@ -1900,13 +1929,13 @@ int media_sensor(int n){
 
 bool ve_objeto()
 {
-	int sinal;
-	aciona_luz(true, true, true);
-	delay(200);
-	sinal = media_sensor(5);
-	aciona_luz(false, false, false);
+	// int sinal;
+	// aciona_luz(true, true, true);
+	// delay(200);
+	// sinal = media_sensor(5);
+	// aciona_luz(false, false, false);
 
-	if (sinal > 100) return false;
+	if (ldr_valor < ldr_limiar) return false;
 	else return true;
 }
 
@@ -1917,78 +1946,92 @@ void ve_cor()
 	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
 
 	aciona_luz(true, false, false);
-	delay(200);
 	r = media_sensor(5);
-	aciona_luz(false, false, false);
-
-	lcd.setCursor(10,1);	lcd.print (".");
-
-	aciona_luz(false, true, false);
-	delay(200);
-	g = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(11,1);	lcd.print (".");
 
-	aciona_luz(false, false, true);
-	delay(200);
-	b = media_sensor(5);
+	aciona_luz(false, true, false);
+	g = media_sensor(5);
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(12,1);	lcd.print (".");
 
-	cinza = branco[RED]-preto[RED];
-	cores[RED] 		= (r - preto[RED])/(cinza)*255;
+	aciona_luz(false, false, true);
+	b = media_sensor(5);
+	aciona_luz(false, false, false);
 
 	lcd.setCursor(13,1);	lcd.print (".");
+	delay(200);
 
-	cinza = branco[GREEN]-preto[GREEN];
-	cores[GREEN] 	= (g - preto[GREEN])/(cinza)*255;
+	cinza = branco[RED]-preto[RED];
+	cores[RED] 		= (r - preto[RED])/(cinza)*100;
 
 	lcd.setCursor(14,1);	lcd.print (".");
+	delay(200);
+
+	cinza = branco[GREEN]-preto[GREEN];
+	cores[GREEN] 	= (g - preto[GREEN])/(cinza)*100;
+
+	lcd.setCursor(15,1);	lcd.print (".");
+	delay(200);
 
 	cinza = branco[BLUE]-preto[BLUE];
-	cores[BLUE] 	= (b - preto[BLUE])/(cinza)*255;
+	cores[BLUE] 	= (b - preto[BLUE])/(cinza)*100;
 }
 
 void balanco_branco()
 {
+	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
+
 	aciona_luz(true, false, false);
-	delay(100);
 	branco[RED] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(11,1);	lcd.print (".");
 
 	aciona_luz(false, true, false);
-	delay(100);
 	branco[GREEN] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(12,1);	lcd.print (".");
 
 	aciona_luz(false, false, true);
-	delay(100);
 	branco[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(13,1);	lcd.print (".");
+	delay(200);
+	lcd.setCursor(14,1);	lcd.print (".");
+	delay(200);
+	lcd.setCursor(15,1);	lcd.print (".");
+	delay(200);
 }
 
 void balanco_preto()
 {
+	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
+
 	aciona_luz(true, false, false);
-	delay(100);
 	preto[RED] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(11,1);	lcd.print (".");
 
 	aciona_luz(false, true, false);
-	delay(100);
 	preto[GREEN] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(12,1);	lcd.print (".");
 
 	aciona_luz(false, false, true);
-	delay(100);
 	preto[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
-	delay(100);
+
+	lcd.setCursor(13,1);	lcd.print (".");
+	delay(200);
+	lcd.setCursor(14,1);	lcd.print (".");
+	delay(200);
+	lcd.setCursor(15,1);	lcd.print (".");
+	delay(200);
 }
