@@ -4,9 +4,9 @@ SUMARIO do MENU
 - Iniciar
 --|- Iniciar(aciona funcionanento principal)
 - Configurar
---|- TDT (tempo de trabalho)
---|- pot m1 (potencia do motor 1)
---|- pot m2 (potencia do motor 2)
+--|- LDR Lmt (fator de corte para encontrar objetos)
+--|- pot ME (potencia do motor da roda esquerda)
+--|- pot MD (potencia do motor da roda direita)
 - Informacoes
 --|- Bateria
 --|- RGB (Intencidade refletida por cor(%))
@@ -153,7 +153,6 @@ bool desliza = true;
 int 	estado_motor;	// Posicao na pilha de acoes do motor
 int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
-int 	tdt;			// Tempo de Trabalho (unidade de tempo para cada acao do robo)
 int 	mov;			// Movimento a ser efetuado;
 bool	ligado;			// Informa se o robo esta funcionando;
 // Sequenciass de movimentos
@@ -247,7 +246,6 @@ void loop()
 	atualiza();
 	menu();
 	movimentos();
-	// aciona_luz(true,true,true);
 }
 
 /* implementação das funcoes */
@@ -265,7 +263,6 @@ void inicia_motor() // Inicializa as vatiaveis
 	// Parametros iniciais
 	pot_motor_m1 = 150;
 	pot_motor_m2 = 150;
-	tdt = 10000;
 	ligado = false;
 	AFMS.begin(); // create with the default frequency 1.6KHz
 }
@@ -274,7 +271,7 @@ void inicia_sensor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	ldr_cor[RED]	= 0.0;
-	ldr_cor[GREEN]= 0.0;
+	ldr_cor[GREEN]  = 0.0;
 	ldr_cor[BLUE]	= 0.0;
 	led = 0;
 	cor = WHITE;
@@ -322,22 +319,22 @@ void 	inicia_entradas()
 	quadrado.set_tam(8);
 	quadrado.reset();
 	quadrado.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
+	quadrado.set( DIREITA, T_GIRO_90 );
 	quadrado.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
+	quadrado.set( DIREITA, T_GIRO_90 );
 	quadrado.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
+	quadrado.set( DIREITA, T_GIRO_90 );
 	quadrado.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
+	quadrado.set( DIREITA, T_GIRO_90 );
 }
 
 void atualiza () // Atualiza as constantes utilizadas
 {
-	botao = 0;
 	int sensorValue = analogRead(A0);
 	carga = sensorValue * (5.0 / 1023.0);
 	ldr_valor = analogRead(LDR_PIN);
 	objeto = ve_objeto();
+	botao = 0;
 }
 
 int verifica_botao () // Identifica qual botao foi acionado
@@ -384,15 +381,13 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		else
 		{
 			lcd.print ("Ja em operacao  ");
+			estado_menu = 9;
 		}
 	}
 	else if (estado_liga < 10)
 	{
-		if (ligado)
-		{
-			lcd.setCursor((estado_liga+4),1);
-			lcd.print (".");
-		}
+		lcd.setCursor((estado_liga+5),1);
+		lcd.print (".");
 	}
 	else estado_menu = 0;
 }
@@ -401,7 +396,8 @@ void m_inicio(int n) // MENU - Nivel 1
 {
 	int ns = 7;
 	String titulo = NOME_ROBO;
-	String subtitulo[ns] = {
+	String subtitulo[ns] =
+	{
 		"                ",
 		"Iniciar         ",
 		"Configurar      ",
@@ -458,7 +454,7 @@ void m_configurar(int n) // Configurar - nivel 2
 	int ns = 6;
 	String subtitulo[ns] = {
 		"Voltar          ",
-		"TDT    -       +",
+		"ldrlmt -       +",
 		"pot ME -       +",
 		"pot MD -       +",
 		"Balanco branco  ",
@@ -477,7 +473,7 @@ void m_configurar(int n) // Configurar - nivel 2
 	lcd.print (subtitulo[estado_menu%10]);
 	lcd.setCursor(10,1);
 
-	if (estado_menu == n+1)      lcd.print (tdt);
+	if (estado_menu == n+1)      lcd.print (ldr_limiar);
 	else if (estado_menu == n+2) lcd.print (pot_motor_m1);
 	else if (estado_menu == n+3) lcd.print (pot_motor_m2);
 
@@ -495,7 +491,7 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case DIREITA:
 		if (estado_menu == n+1)
-		{	if (tdt < 10000) tdt += 10;
+		{	if (ldr_limiar < 10000) ldr_limiar += 10;
 		}
 		else if (estado_menu == n+2)
 		{	if (pot_motor_m1 < 255) pot_motor_m1++;
@@ -507,7 +503,7 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case ESQUERDA:
 		if (estado_menu == n+1)
-		{	if (tdt > 0) tdt -= 10;
+		{	if (ldr_limiar > 0) ldr_limiar -= 10;
 		}
 		else if (estado_menu == n+2)
 		{	if (pot_motor_m1 > 0) pot_motor_m1--;
@@ -534,64 +530,68 @@ void m_configurar(int n) // Configurar - nivel 2
 }
 
 void m_informacoes(int n) // Informacoes - nivel 2
-{	String titulo = "  INFORMACOES  ";
-int ns = 6;
-String subtitulo[ns] =
-{	"Voltar          ",
-"Bateria        v",
-"R    G    B     ",
-"LDR             ",
-"Objeto          ",
-"Tempo         s",
-};
-
-if ((millis() - t_menu) > T_MAX_MENU)
-{	t_menu = millis();
-	botao = verifica_botao();
-}
-
-lcd.setCursor(0,0);
-lcd.print (titulo);
-lcd.setCursor(0,1);
-lcd.print (subtitulo[estado_menu%10]);
-lcd.setCursor(10,1);
-
-if (estado_menu == n+1) lcd.print (carga);
-else if (estado_menu == n+2)
-{	lcd.setCursor(2,1);
-	lcd.print (ldr_cor[RED]);
-	lcd.setCursor(7,1);
-	lcd.print (ldr_cor[GREEN]);
-	lcd.setCursor(12,1);
-	lcd.print (ldr_cor[BLUE]);
-}
-else if (estado_menu == n+3) lcd.print (ldr_valor);
-else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
-else if (estado_menu == n+5) lcd.print (millis());
-
-switch (botao)
 {
-	case CIMA:
-	estado_menu--;
-	if (estado_menu < n) estado_menu = (n+ns)-1;
-	break;
+	String titulo = "  INFORMACOES  ";
+	int ns = 6;
+	String subtitulo[ns] =
+	{
+		"Voltar          ",
+		"Bateria        v",
+		"R    G    B     ",
+		"LDR             ",
+		"Objeto          ",
+		"Tempo         s",
+	};
 
-	case BAIXO:
-	estado_menu++;
-	if (estado_menu >= (n+ns)) estado_menu = n;
-	break;
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
 
-	case DIREITA:
-	break;
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
 
-	case ESQUERDA:
-	break;
+	if (estado_menu == n+1) lcd.print (carga);
+	else if (estado_menu == n+2)
+	{
+		lcd.setCursor(2,1);
+		lcd.print (ldr_cor[RED]);
+		lcd.setCursor(7,1);
+		lcd.print (ldr_cor[GREEN]);
+		lcd.setCursor(12,1);
+		lcd.print (ldr_cor[BLUE]);
+	}
+	else if (estado_menu == n+3) lcd.print (ldr_valor);
+	else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+	else if (estado_menu == n+5) lcd.print (millis());
 
-	case SELECIONA:
-	if (estado_menu == n) estado_menu = (estado_menu/10);
-	else if (estado_menu == n+2) ve_cor();
-	break;
-}
+	switch (botao)
+	{
+		case CIMA:
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		break;
+
+		case BAIXO:
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		break;
+
+		case DIREITA:
+		break;
+
+		case ESQUERDA:
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n) estado_menu = (estado_menu/10);
+		else if (estado_menu == n+2) ve_cor();
+		break;
+	}
 }
 
 void m_testes(int n) // Testes - nivel 2
@@ -947,10 +947,62 @@ int move_auto()
 		ve_cor();
 		if (cor == RED)
 		{
-			/* code */
+			estado_motor = 2;
+			t_motor = millis();
 		}
-	}
+		if (cor == GREEN)
+		{
+			estado_motor = 3;
+			t_motor = millis();
+		}
+		if (cor == BLUE)
+		{
+			estado_motor = 4;
+			t_motor = millis();
+		}
+		if (cor == YELLOW)
+		{
+			estado_motor = 5;
+			t_motor = millis();
+		}
+		if (cor == BLACK)
+		{
+			estado_motor = 6;
+			t_motor = millis();
+		}
+		break;
 
+		case 2:
+		while (anda(TRAS,T_ANDA_RE) != 1); // anda para tras
+		while (anda(DIREITA,T_GIRO_90) != 1); // gira 90 graus
+		while (anda(DIREITA,T_GIRO_90) != 1); // gira 90 graus
+		while (anda(DIREITA,T_GIRO_90) != 1); // gira 90 graus
+		while (anda(DIREITA,T_GIRO_90) != 1); // gira 90 graus
+		return 1;
+		break;
+
+		case 3:
+		while (anda(TRAS,T_ANDA_RE) != 1); // anda para tras
+		while (anda(ESQUERDA,T_GIRO_90) != 1); // gira 90 graus
+		estado_motor = 0;
+		t_motor = millis();
+		break;
+
+		case 4:
+		while (anda(TRAS,T_ANDA_RE) != 1); // anda para tras
+		while (anda(DIREITA,T_GIRO_90) != 1); // gira 90 graus
+		estado_motor = 0;
+		t_motor = millis();
+		break;
+
+		case 5:
+		while (anda(TRAS,T_ANDA_RE) != 1); // anda para tras
+		while (anda(ESQUERDA,T_GIRO_90) != 1); // gira 90 graus
+		while (anda(ESQUERDA,T_GIRO_90) != 1); // gira 90 graus
+		estado_motor = 0;
+		t_motor = millis();
+		break;
+	}
 	return 0;
 }
 
@@ -963,7 +1015,7 @@ int movimentos ()
 	}
 	else if (mov == 2)
 	{
-		if (move(teste) == 1) 	ligado = false;
+		if (move(teste) == 1) 		ligado = false;
 	}
 	else if (mov == 3)
 	{
