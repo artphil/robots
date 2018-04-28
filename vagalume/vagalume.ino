@@ -618,32 +618,46 @@ void m_testes(int n) // Testes - nivel 2
 	lcd.setCursor(0,1);
 	lcd.print (subtitulo[estado_menu%10]);
 
-	if (estado_menu == n+4)
+	if (estado_menu == n+4 && led != 0)
 	{
-		if (led == 0)
+		switch (led)
 		{
-			lcd.print ("<  R   G   B   >");
+			case 0:
 			aciona_luz(false, false, false);
-		}
-		else if (led == 1)
-		{
-			lcd.print ("< *R*  G   B   >");
+			break;
+
+			case 1:
+			lcd.setCursor(2,1);
+			lcd.print ("*");
+			lcd.setCursor(4,1);
+			lcd.print ("*");
 			aciona_luz(true, false, false);
-		}
-		else if (led == 2)
-		{
-			lcd.print ("<  R  *G*  B   >");
+			break;
+
+			case 2:
+			lcd.setCursor(6,1);
+			lcd.print ("*");
+			lcd.setCursor(8,1);
+			lcd.print ("*");
 			aciona_luz(false, true, false);
-		}
-		else if (led == 3)
-		{
-			lcd.print ("<  R   G  *B*  >");
+			break;
+
+			case 3:
+			lcd.setCursor(10,1);
+			lcd.print ("*");
+			lcd.setCursor(12,1);
+			lcd.print ("*");
 			aciona_luz(false, false, true);
-		}
-		else if (led == 4)
-		{
-			lcd.print ("< *R* *G* *B*  >");
+			break;
+
+			case 4:
+			for (int i = 2; i < 13; i+=2)
+			{
+				lcd.setCursor(i,1);
+				lcd.print ("*");
+			}
 			aciona_luz(true, true, true);
+			break;
 		}
 	}
 
@@ -660,7 +674,7 @@ void m_testes(int n) // Testes - nivel 2
 		break;
 
 		case DIREITA:
-		if (estado_menu == n+2)	anda(TRAS, T_MAX_MENU);
+		if (estado_menu == n+2)			anda(TRAS, T_MAX_MENU);
 		else if (estado_menu == n+3)	anda(DIREITA, T_MAX_MENU);
 		else if (estado_menu == n+4)
 		{
