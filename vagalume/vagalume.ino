@@ -229,11 +229,12 @@ void 	ve_cor();
 void balanco_branco();
 void balanco_preto();
 // Manipula a memoria EEPROM
+// Variveis: pot_motor_m*, ldr_limiar, ldr_branco e ldr_preto.
 void grava_EEPROM ();
 void le_EEPROM ();
 
 
-/* funcoes utilizadas pelo arduino */
+/* funcoes proprietarias do arduino */
 
 void setup()
 {
@@ -362,7 +363,16 @@ void grava_EEPROM ()
 
 	EEPROM.write(0, pot_motor_m1);
 	EEPROM.write(1, pot_motor_m2);
+
 	EEPROM.write(2, ldr_limiar);
+
+	EEPROM.write(3, ldr_branco[0]);
+	EEPROM.write(4, ldr_branco[1]);
+	EEPROM.write(5, ldr_branco[2]);
+
+	EEPROM.write(6, ldr_preto[0]):
+	EEPROM.write(7, ldr_preto[1]):
+	EEPROM.write(8, ldr_preto[2]):
 
 	for (size_t i = 0; i < 4; i++) {
 		lcd.setCursor(9+i,1);
@@ -378,7 +388,16 @@ void le_EEPROM ()
 
 	pot_motor_m1 = EEPROM.read(0);
 	pot_motor_m2 = EEPROM.read(1);
+
 	ldr_limiar   = EEPROM.read(2);
+
+	ldr_branco[0]= EEPROM.read(3);
+	ldr_branco[1]= EEPROM.read(4);
+	ldr_branco[2]= EEPROM.read(5);
+
+	ldr_preto[0]= EEPROM.read(6);
+	ldr_preto[1]= EEPROM.read(7);
+	ldr_preto[2]= EEPROM.read(8);
 
 	for (size_t i = 0; i < 4; i++) {
 		lcd.setCursor(12+i,1);
