@@ -32,6 +32,7 @@ SUMARIO do MENU
 
 #include <LiquidCrystal.h>
 #include <Adafruit_MotorShield.h>
+#include <EEPROM.h>
 using namespace std;
 
 /* definicoes de auxilio */
@@ -66,8 +67,8 @@ using namespace std;
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
 #define T_TESTE 		2000
-#define T_GIRO_30 		700
-#define T_GIRO_90 		2100
+#define T_GIRO_45 		1000
+#define T_GIRO_90 		2000
 #define T_ANDA_30		5000
 #define T_ANDA_RE		500
 #define T_MAX_ANDAR		10000
@@ -227,6 +228,10 @@ void 	ve_cor();
 // Calibra o receptor de luz
 void balanco_branco();
 void balanco_preto();
+// Manipula a memoria EEPROM
+void grava_EEPROM ();
+void le_EEPROM ();
+
 
 /* funcoes utilizadas pelo arduino */
 
@@ -308,13 +313,13 @@ void 	inicia_entradas()
 	triangulo.reset();
 	triangulo.set( FRENTE,  T_ANDA_30 );
 	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( DIREITA, T_GIRO_30 );
 	triangulo.set( FRENTE,  T_ANDA_30 );
 	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( DIREITA, T_GIRO_30 );
+	triangulo.set( DIREITA, T_GIRO_45 );
 	triangulo.set( FRENTE,  T_ANDA_30 );
+	triangulo.set( FRENTE,  (int)(T_ANDA_30*1.4) );
 	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( DIREITA, T_GIRO_30 );
+	triangulo.set( DIREITA, T_GIRO_45 );
 
 	quadrado.set_tam(8);
 	quadrado.reset();
@@ -348,6 +353,38 @@ int verifica_botao () // Identifica qual botao foi acionado
 	else if (botao < 700) 	return SELECIONA;
 	else					return 0;
 
+}
+
+void grava_EEPROM ()
+{
+	lcd.setCursor(0,1);
+	lcd.print ("Gravando        ");
+
+	EEPROM.write(0, pot_motor_m1);
+	EEPROM.write(1, pot_motor_m2);
+	EEPROM.write(2, ldr_limiar);
+
+	for (size_t i = 0; i < 4; i++) {
+		lcd.setCursor(9+i,1);
+		lcd.print (".");
+		delay(200);
+	}
+}
+
+void le_EEPROM ()
+{
+	lcd.setCursor(0,1);
+	lcd.print ("Lendo dados     ");
+
+	pot_motor_m1 = EEPROM.read(0);
+	pot_motor_m2 = EEPROM.read(1);
+	ldr_limiar   = EEPROM.read(2);
+
+	for (size_t i = 0; i < 4; i++) {
+		lcd.setCursor(12+i,1);
+		lcd.print (".");
+		delay(200);
+	}
 }
 
 void m_iniciar(int n)	// Inicia processo de movimentos
@@ -451,7 +488,7 @@ void m_inicio(int n) // MENU - Nivel 1
 void m_configurar(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
-	int ns = 6;
+	int ns = 8;
 	String subtitulo[ns] = {
 		"Voltar          ",
 		"ldrlmt -       +",
@@ -459,6 +496,8 @@ void m_configurar(int n) // Configurar - nivel 2
 		"pot MD -       +",
 		"Balanco branco  ",
 		"Balanco preto   ",
+		"     GRAVAR     ",
+		"    LE SALVO    "
 	};
 
 	if ((millis() - t_menu) > T_MAX_MENU)
@@ -491,7 +530,7 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case DIREITA:
 		if (estado_menu == n+1)
-		{	if (ldr_limiar < 10000) ldr_limiar += 10;
+		{	if (ldr_limiar < 1023) ldr_limiar++;
 		}
 		else if (estado_menu == n+2)
 		{	if (pot_motor_m1 < 255) pot_motor_m1++;
@@ -503,7 +542,7 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case ESQUERDA:
 		if (estado_menu == n+1)
-		{	if (ldr_limiar > 0) ldr_limiar -= 10;
+		{	if (ldr_limiar > 0) ldr_limiar--;
 		}
 		else if (estado_menu == n+2)
 		{	if (pot_motor_m1 > 0) pot_motor_m1--;
@@ -515,14 +554,27 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case SELECIONA:
 		if (estado_menu == n)
-		{	estado_menu = (estado_menu/10);
+		{
+			estado_menu = (estado_menu/10);
 		}
 		else if (estado_menu == n+4)
-		{	balanco_branco();
+		{
+			balanco_branco();
 			estado_menu = (estado_menu/10);
 		}
 		else if (estado_menu == n+5)
-		{	balanco_preto();
+		{
+			balanco_preto();
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+6)
+		{
+			grava_EEPROM();
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+7)
+		{
+			le_EEPROM();
 			estado_menu = (estado_menu/10);
 		}
 		break;
@@ -674,8 +726,16 @@ void m_testes(int n) // Testes - nivel 2
 		break;
 
 		case DIREITA:
-		if (estado_menu == n+2)			anda(TRAS, T_MAX_MENU);
-		else if (estado_menu == n+3)	anda(DIREITA, T_MAX_MENU);
+		if (estado_menu == n+2)
+		{
+			aciona_motor(-1,-1);
+			delay(T_MAX_MENU);
+		}
+		else if (estado_menu == n+3)
+		{
+			aciona_motor(1,-1);
+			delay(T_MAX_MENU);
+		}
 		else if (estado_menu == n+4)
 		{
 			if (led < 4) led++;
@@ -684,8 +744,16 @@ void m_testes(int n) // Testes - nivel 2
 		break;
 
 		case ESQUERDA:
-		if (estado_menu == n+2)			anda(FRENTE, T_MAX_MENU);
-		else if (estado_menu == n+3)	anda(ESQUERDA, T_MAX_MENU);
+		if (estado_menu == n+2)
+		{
+			aciona_motor(1, 1);
+			delay(T_MAX_MENU);
+		}
+		else if (estado_menu == n+3)
+		{
+			aciona_motor(-1, 1);
+			delay(T_MAX_MENU);
+		}
 		else if (estado_menu == n+4)
 		{
 			if (led > 0) led--;
