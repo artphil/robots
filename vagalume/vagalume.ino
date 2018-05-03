@@ -67,10 +67,7 @@ using namespace std;
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
 #define T_TESTE 		2000
-#define T_GIRO_45 		1000
-#define T_GIRO_90 		2000
-#define T_ANDA_30		5000
-#define T_ANDA_RE		500
+#define T_ANDA_RE		600
 #define T_MAX_ANDAR		10000
 #define T_NOME  		400
 
@@ -157,11 +154,16 @@ int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
 int 	mov;			// Movimento a ser efetuado;
 bool	ligado;			// Informa se o robo esta funcionando;
+int t_giro_45;
+int t_giro_90;
+int t_anda_30;
 // Sequenciass de movimentos
 entrada teste;
 entrada vai_vem;
 entrada triangulo;
 entrada quadrado;
+entrada giro45;
+entrada giro90;
 
 // Leds e sensores
 int 	led;			// Led aceso
@@ -271,6 +273,9 @@ void inicia_motor() // Inicializa as vatiaveis
 	pot_motor_m1 = 150;
 	pot_motor_m2 = 150;
 	ligado = false;
+	t_giro_45 = 1200;
+	t_giro_90 = 2400;
+	t_anda_30 = 5000;
 	AFMS.begin(); // create with the default frequency 1.6KHz
 }
 
@@ -304,35 +309,46 @@ void 	inicia_entradas()
 
 	vai_vem.set_tam(6);
 	vai_vem.reset();
-	vai_vem.set( FRENTE,  T_ANDA_30 );
-	vai_vem.set( DIREITA, T_GIRO_90 );
-	vai_vem.set( DIREITA, T_GIRO_90 );
-	vai_vem.set( FRENTE,  T_ANDA_30 );
-	vai_vem.set( DIREITA, T_GIRO_90 );
-	vai_vem.set( DIREITA, T_GIRO_90 );
+	vai_vem.set( FRENTE,  t_anda_30 );
+	vai_vem.set( DIREITA, t_giro_90 );
+	vai_vem.set( DIREITA, t_giro_90 );
+	vai_vem.set( FRENTE,  t_anda_30 );
+	vai_vem.set( DIREITA, t_giro_90 );
+	vai_vem.set( DIREITA, t_giro_90 );
 
-	triangulo.set_tam(9);
+	triangulo.set_tam(8);
 	triangulo.reset();
-	triangulo.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( DIREITA, T_GIRO_45 );
-	triangulo.set( FRENTE,  T_ANDA_30 );
-	triangulo.set( FRENTE,  (int)(T_ANDA_30*1.4) );
-	triangulo.set( DIREITA, T_GIRO_90 );
-	triangulo.set( DIREITA, T_GIRO_45 );
+	triangulo.set( FRENTE,  t_anda_30 );
+	triangulo.set( DIREITA, t_giro_90 );
+	triangulo.set( FRENTE,  t_anda_30 );
+	triangulo.set( DIREITA, t_giro_90 );
+	triangulo.set( DIREITA, t_giro_45 );
+	triangulo.set( FRENTE,  (int)(t_anda_30*sqrt(2)) );
+	triangulo.set( DIREITA, t_giro_90 );
+	triangulo.set( DIREITA, t_giro_45 );
 
 	quadrado.set_tam(8);
 	quadrado.reset();
-	quadrado.set( FRENTE,  T_ANDA_30 );
-	quadrado.set( DIREITA, T_GIRO_90 );
-	quadrado.set( FRENTE,  T_ANDA_30 );
-	quadrado.set( DIREITA, T_GIRO_90 );
-	quadrado.set( FRENTE,  T_ANDA_30 );
-	quadrado.set( DIREITA, T_GIRO_90 );
-	quadrado.set( FRENTE,  T_ANDA_30 );
-	quadrado.set( DIREITA, T_GIRO_90 );
+	quadrado.set( FRENTE,  t_anda_30 );
+	quadrado.set( DIREITA, t_giro_90 );
+	quadrado.set( FRENTE,  t_anda_30 );
+	quadrado.set( DIREITA, t_giro_90 );
+	quadrado.set( FRENTE,  t_anda_30 );
+	quadrado.set( DIREITA, t_giro_90 );
+	quadrado.set( FRENTE,  t_anda_30 );
+	quadrado.set( DIREITA, t_giro_90 );
+
+	giro45.set_tam(3);
+	giro45.reset();
+	giro45.set( DIREITA,  t_giro_45 );
+	giro45.set( PARA,  	  t_giro_45 );
+	giro45.set( ESQUERDA, t_giro_45 );
+
+	giro90.set_tam(3);
+	giro90.reset();
+	giro90.set( DIREITA,  t_giro_90 );
+	giro90.set( PARA,     t_giro_90 );
+	giro90.set( ESQUERDA, t_giro_90 );
 }
 
 void atualiza () // Atualiza as constantes utilizadas
@@ -429,7 +445,6 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 	{
 		if (!ligado)
 		{
-			lcd.print ("Morfando        ");
 			ligado 	= true;
 			estado_motor = 0;
 			t_motor = millis();
@@ -438,15 +453,10 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		else
 		{
 			lcd.print ("Ja em operacao  ");
-			estado_menu = 9;
+			estado_menu = 0;
 		}
 	}
-	else if (estado_liga < 10)
-	{
-		lcd.setCursor((estado_liga+5),1);
-		lcd.print (".");
-	}
-	else estado_menu = 0;
+	else if (estado_liga > 10) estado_menu = 0;
 }
 
 void m_inicio(int n) // MENU - Nivel 1
@@ -508,7 +518,7 @@ void m_inicio(int n) // MENU - Nivel 1
 void m_configurar(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
-	int ns = 8;
+	int ns = 10;
 	String subtitulo[ns] = {
 		"Voltar          ",
 		"Balanco branco  ",
@@ -516,6 +526,8 @@ void m_configurar(int n) // Configurar - nivel 2
 		"ldrlmt -       +",
 		"pot ME -       +",
 		"pot MD -       +",
+		"anda30 -       +",
+		"giro90 -       +",
 		"     GRAVAR     ",
 		"    LE SALVO    "
 	};
@@ -535,6 +547,8 @@ void m_configurar(int n) // Configurar - nivel 2
 	if (estado_menu == n+3)      lcd.print (ldr_limiar);
 	else if (estado_menu == n+4) lcd.print (pot_motor_m1);
 	else if (estado_menu == n+5) lcd.print (pot_motor_m2);
+	else if (estado_menu == n+6) lcd.print (t_anda_30);
+	else if (estado_menu == n+7) lcd.print (t_giro_90);
 
 	switch (botao)
 	{
@@ -550,25 +564,55 @@ void m_configurar(int n) // Configurar - nivel 2
 
 		case DIREITA:
 		if (estado_menu == n+3)
-		{	if (ldr_limiar < 1023) ldr_limiar++;
+		{
+			if (ldr_limiar < 1023) ldr_limiar++;
 		}
 		else if (estado_menu == n+4)
-		{	if (pot_motor_m1 < 255) pot_motor_m1++;
+		{
+			if (pot_motor_m1 < 255) pot_motor_m1++;
 		}
 		else if (estado_menu == n+5)
-		{	if (pot_motor_m2 < 255) pot_motor_m2++;
+		{
+			if (pot_motor_m2 < 255) pot_motor_m2++;
+		}
+		else if (estado_menu == n+6)
+		{
+			if (t_anda_30 < 10000) t_anda_30++;
+		}
+		else if (estado_menu == n+7)
+		{
+			if (t_giro_90 < 10000)
+			{
+				t_giro_90++;
+			 	t_giro_45 = t_giro_90/2;
+			}
 		}
 		break;
 
 		case ESQUERDA:
 		if (estado_menu == n+3)
-		{	if (ldr_limiar > 0) ldr_limiar--;
+		{
+			if (ldr_limiar > 0) ldr_limiar--;
 		}
 		else if (estado_menu == n+4)
-		{	if (pot_motor_m1 > 0) pot_motor_m1--;
+		{
+			if (pot_motor_m1 > 0) pot_motor_m1--;
 		}
 		else if (estado_menu == n+5)
-		{	if (pot_motor_m2 > 0) pot_motor_m2--;
+		{
+			if (pot_motor_m2 > 0) pot_motor_m2--;
+		}
+		else if (estado_menu == n+6)
+		{
+			if (t_anda_30 > 0) t_anda_30--;
+		}
+		else if (estado_menu == n+7)
+		{
+			if (t_giro_90 > 0)
+			{
+				t_giro_90--;
+			 	t_giro_45 = t_giro_90/2;
+			}
 		}
 		break;
 
@@ -587,12 +631,12 @@ void m_configurar(int n) // Configurar - nivel 2
 			balanco_preto();
 			estado_menu = (estado_menu/10);
 		}
-		else if (estado_menu == n+6)
+		else if (estado_menu == n+8)
 		{
 			grava_EEPROM();
 			estado_menu = (estado_menu/10);
 		}
-		else if (estado_menu == n+7)
+		else if (estado_menu == n+9)
 		{
 			le_EEPROM();
 			estado_menu = (estado_menu/10);
@@ -724,7 +768,7 @@ void m_testes(int n) // Testes - nivel 2
 			break;
 		}
 	}
-	else if (estado_menu == n+4 && led != 0)
+	else if (estado_menu == n+4)
 	{
 		switch (led)
 		{
@@ -794,6 +838,8 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			if (led < 4) led++;
 			else led = 0;
+			Serial.println("led: ");
+			Serial.println(led);
 		}
 		break;
 
@@ -810,6 +856,8 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			if (led > 0) led--;
 			else led = 4;
+			Serial.println("led: ");
+			Serial.println(led);
 		}
 		break;
 
@@ -837,13 +885,15 @@ void m_testes(int n) // Testes - nivel 2
 void m_pre_moves(int n) // Pre moves - nivel 2
 {
 	String titulo = "   PRE  MOVES   ";
-	int ns = 4;
+	int ns = 6;
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
 		"Vai Vem         ",
 		"Triangulo       ",
-		"Quadrado         ",
+		"Quadrado        ",
+		"Giro 45         ",
+		"Giro 90         ",
 	};
 
 	if ((millis() - t_menu) > T_MAX_MENU)
@@ -1037,12 +1087,11 @@ int anda(int direcao, int tmp_acao)
 		else if (direcao == TRAS)
 		{
 			aciona_motor(0,0);
-			lcd.print ("PARA       ");
+			lcd.print ("TRAS       ");
 		}
 		else
 		{
 			aciona_motor(0,0);
-			return 1;
 		}
 	}
 	else
@@ -1114,31 +1163,31 @@ int move_auto()
 
 		case 2:
 		while (anda(TRAS,T_ANDA_RE) != 1); 	  	// anda para tras
-		while (anda(DIREITA,T_GIRO_90) != 1); 	// gira 90 graus
-		while (anda(DIREITA,T_GIRO_90) != 1); 	// gira 90 graus
-		while (anda(DIREITA,T_GIRO_90) != 1); 	// gira 90 graus
-		while (anda(DIREITA,T_GIRO_90) != 1); 	// gira 90 graus
+		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
 		return 1;
 		break;
 
 		case 3:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
-		while (anda(ESQUERDA,T_GIRO_90) != 1); 	// gira 90 graus
+		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
 		break;
 
 		case 4:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
-		while (anda(DIREITA,T_GIRO_90) != 1); 	// gira 90 graus
+		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
 		break;
 
 		case 5:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
-		while (anda(ESQUERDA,T_GIRO_90) != 1); 	// gira 90 graus
-		while (anda(ESQUERDA,T_GIRO_90) != 1); 	// gira 90 graus
+		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
+		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
 		break;
@@ -1169,7 +1218,14 @@ int movimentos ()
 	{
 		if (move(quadrado) == 1) 	ligado = false;
 	}
-
+	else if (mov == 6)
+	{
+		if (move(giro45) == 1) 		ligado = false;
+	}
+	else if (mov == 7)
+	{
+		if (move(giro90) == 1) 		ligado = false;
+	}
 }
 
 void aciona_luz(bool r, bool g, bool b)
@@ -1235,6 +1291,29 @@ void ve_cor()
 	cinza = ldr_branco[BLUE]-ldr_preto[BLUE];
 	ldr_cor[BLUE] 	= ((b - ldr_preto[BLUE])*255)/(cinza);
 
+	if (ldr_cor[RED] == ldr_cor[GREEN] && ldr_cor[GREEN] == ldr_cor[BLUE])
+	{
+		if (ldr_cor[RED] < 10) cor = BLACK;
+		else cor = WHITE;
+	}
+	else if (ldr_cor[RED] > ldr_cor[GREEN] && ldr_cor[RED] > ldr_cor[BLUE])
+	{
+		if (ldr_cor[GREEN] > ldr_cor[BLUE]) cor = YELLOW;
+		else cor = RED;
+	}
+	else if (ldr_cor[GREEN] > ldr_cor[RED] && ldr_cor[GREEN] > ldr_cor[BLUE])
+	{
+	 	cor = GREEN;
+	}
+	else cor = BLUE;
+
+
+	Serial.print(ldr_cor[RED]);
+	Serial.print(", ");
+	Serial.print(ldr_cor[GREEN]);
+	Serial.print(", ");
+	Serial.println(ldr_cor[BLUE]);
+
 	lcd.setCursor(0,1);
 	lcd.print ("                ");
 	lcd.setCursor(0,1);
@@ -1263,6 +1342,15 @@ void balanco_branco()
 	ldr_branco[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
 
+	Serial.print("branco( ");
+	Serial.print(ldr_branco[RED]);
+	Serial.print(", ");
+	Serial.print(ldr_branco[GREEN]);
+	Serial.print(", ");
+	Serial.print(ldr_branco[BLUE]);
+	Serial.println(" )");
+
+
 	lcd.setCursor(13,1);	lcd.print (".");
 	delay(200);
 	lcd.setCursor(14,1);	lcd.print (".");
@@ -1290,6 +1378,14 @@ void balanco_preto()
 	aciona_luz(false, false, true);
 	ldr_preto[BLUE] = media_sensor(5);
 	aciona_luz(false, false, false);
+
+	Serial.print("preto( ");
+	Serial.print(ldr_preto[RED]);
+	Serial.print(", ");
+	Serial.print(ldr_preto[GREEN]);
+	Serial.print(", ");
+	Serial.print(ldr_preto[BLUE]);
+	Serial.println(" )");
 
 	lcd.setCursor(13,1);	lcd.print (".");
 	delay(200);
