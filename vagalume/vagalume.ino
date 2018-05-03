@@ -4,9 +4,15 @@ SUMARIO do MENU
 - Iniciar
 --|- Iniciar(aciona funcionanento principal)
 - Configurar
+--|- Balanco branco
+--|- Balanco preto
 --|- LDR Lmt (fator de corte para encontrar objetos)
 --|- pot ME (potencia do motor da roda esquerda)
 --|- pot MD (potencia do motor da roda direita)
+--|- anda30 (tempo para o robor andar 30cm)
+--|- giro90 (tempo para o robo girar 90 graus)
+--|- GRAVAR (grava dados no EEPROM)
+--|- LE SALVO (le dados do EEPROM)
 - Informacoes
 --|- Bateria
 --|- RGB (Intencidade refletida por cor(%))
@@ -270,8 +276,8 @@ void inicia_menu() // Inicializa as vatiaveis
 void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	pot_motor_m1 = 150;
-	pot_motor_m2 = 150;
+	pot_motor_m1 = 140;
+	pot_motor_m2 = 154;
 	ligado = false;
 	t_giro_45 = 1200;
 	t_giro_90 = 2400;
@@ -391,6 +397,9 @@ void grava_EEPROM ()
 	EEPROM.write(7, ldr_preto[1]/4);
 	EEPROM.write(8, ldr_preto[2]/4);
 
+	EEPROM.write(9, t_anda_30/100);
+	EEPROM.write(10, t_giro_90/100);
+
 	for (size_t i = 0; i < 4; i++) {
 		lcd.setCursor(9+i,1);
 		lcd.print (".");
@@ -415,6 +424,10 @@ void le_EEPROM ()
 	ldr_preto[0]= EEPROM.read(6)*4;
 	ldr_preto[1]= EEPROM.read(7)*4;
 	ldr_preto[2]= EEPROM.read(8)*4;
+
+	t_anda_30  	= EEPROM.read(9)*100;
+	t_giro_90  	= EEPROM.read(10)*100;
+	t_giro_45 = t_giro_90/2;
 
 	for (size_t i = 0; i < 4; i++) {
 		lcd.setCursor(12+i,1);
@@ -514,7 +527,238 @@ void m_inicio(int n) // MENU - Nivel 1
 		break;
 	}
 }
+void m_conf_motor(int n)
+{
+	String titulo = "     MOTORES    ";
+	int ns = 5;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"pot ME -       +",
+		"pot MD -       +",
+		"anda30 -       +",
+		"giro90 -       +"
+	};
 
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	if (estado_menu == n+1) lcd.print (pot_motor_m1);
+	else if (estado_menu == n+2) lcd.print (pot_motor_m2);
+	else if (estado_menu == n+3) lcd.print (t_anda_30);
+	else if (estado_menu == n+4) lcd.print (t_giro_90);
+
+	switch (botao)
+	{
+		case CIMA:
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		break;
+
+		case BAIXO:
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		break;
+
+		case DIREITA:
+		if (estado_menu == n+1)
+		{
+			if (pot_motor_m1 < 255) pot_motor_m1++;
+		}
+		else if (estado_menu == n+2)
+		{
+			if (pot_motor_m2 < 255) pot_motor_m2++;
+		}
+		else if (estado_menu == n+3)
+		{
+			if (t_anda_30 < 25500) t_anda_30+=100;
+		}
+		else if (estado_menu == n+4)
+		{
+			if (t_giro_90 < 25500)
+			{
+				t_giro_90+=100;
+				t_giro_45 = t_giro_90/2;
+			}
+		}
+		break;
+
+		case ESQUERDA:
+		if (estado_menu == n+1)
+		{
+			if (pot_motor_m1 > 0) pot_motor_m1--;
+		}
+		else if (estado_menu == n+2)
+		{
+			if (pot_motor_m2 > 0) pot_motor_m2--;
+		}
+		else if (estado_menu == n+3)
+		{
+			if (t_anda_30 > 0) t_anda_30-=100;
+		}
+		else if (estado_menu == n+4)
+		{
+			if (t_giro_90 > 0)
+			{
+				t_giro_90-=100;
+				t_giro_45 = t_giro_90/2;
+			}
+		}
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n)
+		{
+			estado_menu = (estado_menu/10);
+		}
+		break;
+	}
+
+}
+
+void m_conf_sensor(int n)
+{
+	String titulo = "    SENSORES    ";
+	int ns = 4;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"Balanco branco  ",
+		"Balanco preto   ",
+		"LDRlmt -       +"
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	if (estado_menu == n+3)      lcd.print (ldr_limiar);
+
+	switch (botao)
+	{
+		case CIMA:
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		break;
+
+		case BAIXO:
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		break;
+
+		case DIREITA:
+		if (estado_menu == n+3)
+		{
+			if (ldr_limiar < 1023) ldr_limiar++;
+		}
+		break;
+
+		case ESQUERDA:
+		if (estado_menu == n+3)
+		{
+			if (ldr_limiar > 0) ldr_limiar--;
+		}
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n)
+		{
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+1)
+		{
+			balanco_branco();
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+2)
+		{
+			balanco_preto();
+			estado_menu = (estado_menu/10);
+		}
+		break;
+	}
+
+}
+
+void m_configurar2(int n) // Configurar - nivel 2
+{
+	String titulo = "   CONFIGURAR   ";
+	int ns = 5;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"Motores         ",
+		"Sensores        ",
+		"     GRAVAR     ",
+		"    LE SALVO    "
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	switch (botao)
+	{
+		case CIMA:
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		break;
+
+		case BAIXO:
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		break;
+
+		case DIREITA:
+		break;
+
+		case ESQUERDA:
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n)
+		{
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+3)
+		{
+			grava_EEPROM();
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+4)
+		{
+			le_EEPROM();
+			estado_menu = (estado_menu/10);
+		}
+		else
+		{
+			estado_menu = (estado_menu*10)
+		}
+		break;
+	}
+}
 void m_configurar(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
@@ -523,7 +767,7 @@ void m_configurar(int n) // Configurar - nivel 2
 		"Voltar          ",
 		"Balanco branco  ",
 		"Balanco preto   ",
-		"ldrlmt -       +",
+		"LDRlmt -       +",
 		"pot ME -       +",
 		"pot MD -       +",
 		"anda30 -       +",
@@ -577,14 +821,14 @@ void m_configurar(int n) // Configurar - nivel 2
 		}
 		else if (estado_menu == n+6)
 		{
-			if (t_anda_30 < 10000) t_anda_30++;
+			if (t_anda_30 < 25500) t_anda_30+=100;
 		}
 		else if (estado_menu == n+7)
 		{
-			if (t_giro_90 < 10000)
+			if (t_giro_90 < 25500)
 			{
-				t_giro_90++;
-			 	t_giro_45 = t_giro_90/2;
+				t_giro_90+=100;
+				t_giro_45 = t_giro_90/2;
 			}
 		}
 		break;
@@ -604,14 +848,14 @@ void m_configurar(int n) // Configurar - nivel 2
 		}
 		else if (estado_menu == n+6)
 		{
-			if (t_anda_30 > 0) t_anda_30--;
+			if (t_anda_30 > 0) t_anda_30-=100;
 		}
 		else if (estado_menu == n+7)
 		{
 			if (t_giro_90 > 0)
 			{
-				t_giro_90--;
-			 	t_giro_45 = t_giro_90/2;
+				t_giro_90-=100;
+				t_giro_45 = t_giro_90/2;
 			}
 		}
 		break;
@@ -838,7 +1082,7 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			if (led < 4) led++;
 			else led = 0;
-			Serial.println("led: ");
+			Serial.print("led: ");
 			Serial.println(led);
 		}
 		break;
@@ -1014,6 +1258,9 @@ void menu() // Gerenciador do menu e suas opcoes
 	else if (estado_menu < 50) m_testes(40);
 	else if (estado_menu < 60) m_pre_moves(50);
 	else if (estado_menu < 70) m_creditos(60);
+	else if (estado_menu < 30) m_configurar(20);
+	else if (estado_menu < 220) m_conf_motor(210);
+	else if (estado_menu < 230) m_conf_sensor(220);
 }
 
 void aciona_motor (int m1, int m2)
@@ -1060,39 +1307,40 @@ int anda(int direcao, int tmp_acao)
 
 	if (tmp_aux < tmp_acao)
 	{
-		lcd.setCursor(12,1);
-		lcd.print (tmp_aux / 1000);
 		lcd.setCursor(0,1);
 
 		if (direcao == FRENTE)
 		{
 			aciona_motor(1,1);
-			lcd.print ("FRENTE     ");
+			lcd.print ("FRENTE          ");
 		}
 		else if (direcao == TRAS)
 		{
 			aciona_motor(-1,-1);
-			lcd.print ("TRAS       ");
+			lcd.print ("TRAS            ");
 		}
 		else if (direcao == DIREITA)
 		{
 			aciona_motor(1,-1);
-			lcd.print ("DIREITA    ");
-}
+			lcd.print ("DIREITA         ");
+		}
 		else if (direcao == ESQUERDA)
 		{
 			aciona_motor(-1,1);
-			lcd.print ("ESQUERDA   ");
+			lcd.print ("ESQUERDA        ");
 		}
-		else if (direcao == TRAS)
+		else if (direcao == PARA)
 		{
 			aciona_motor(0,0);
-			lcd.print ("TRAS       ");
+			lcd.print ("PARA            ");
 		}
 		else
 		{
 			aciona_motor(0,0);
 		}
+
+		lcd.setCursor(12,1);
+		lcd.print (tmp_aux / 1000);
 	}
 	else
 	{
@@ -1245,8 +1493,8 @@ int media_sensor(int n)
 	int total = 0;
 	for (int i = 0;i < n;i++)
 	{
+		delay(200);
 		total += analogRead(LDR_PIN);
-		delay(100);
 	}
 	return total/n;
 }
@@ -1283,7 +1531,7 @@ void ve_cor()
 	delay(200);
 
 	cinza = ldr_branco[RED]-ldr_preto[RED];
-	ldr_cor[RED] 		= ((r - ldr_preto[RED])*255)/(cinza);
+	ldr_cor[RED] 	= ((r - ldr_preto[RED])*255)/(cinza);
 
 	cinza = ldr_branco[GREEN]-ldr_preto[GREEN];
 	ldr_cor[GREEN] 	= ((g - ldr_preto[GREEN])*255)/(cinza);
@@ -1303,7 +1551,7 @@ void ve_cor()
 	}
 	else if (ldr_cor[GREEN] > ldr_cor[RED] && ldr_cor[GREEN] > ldr_cor[BLUE])
 	{
-	 	cor = GREEN;
+		cor = GREEN;
 	}
 	else cor = BLUE;
 
