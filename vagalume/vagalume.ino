@@ -147,6 +147,7 @@ Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
 int 	botao;			// Botao pressionado no momento
 int 	tst;			// intica qual teste esta sendo realizado
 int 	estado_menu;	// Posicao na pilha do menu
+int 	estado_antigo;	// Posicao anterior na pilha do menu
 int 	estado_liga;	// Posicao na pilha do menu 11
 unsigned long t_menu;	// Contador de tempo do menu
 unsigned long t_liga;	// Contador de tempo do menu 11
@@ -156,6 +157,7 @@ bool desliza = true;
 
 // Controle do motor
 int 	estado_motor;	// Posicao na pilha de acoes do motor
+int 	estado_move;	// Posicao na pilha de acoes do motor
 int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
 int 	mov;			// Movimento a ser efetuado;
@@ -173,6 +175,7 @@ entrada giro90;
 
 // Leds e sensores
 int 	led;			// Led aceso
+bool 	led_atual[3];		// Verifica se a mudou a os leds
 int 	cor;			// Cor encontrada
 int 	ldr_valor;		// Intencidade de luz captada
 int 	ldr_limiar;		// Valor limite para ver objeto
@@ -227,7 +230,7 @@ int 	movimentos ();
 // Inicializa as vatiaveis
 void 	inicia_sensor();
 // Controla o acionamento das luzes
-void 	aciona_luz(bool, bool, bool);
+int 	aciona_luz(bool, bool, bool);
 // Retorna a media de leituras do sensor
 int 	media_sensor(int);
 // Percebe um obstaculo
@@ -249,6 +252,7 @@ void setup()
 {
 	Serial.begin(9600);
 
+    le_EEPROM ();
 	inicia_menu();
 	inicia_motor();
 	inicia_sensor();
@@ -265,6 +269,17 @@ void loop()
 
 /* implementação das funcoes */
 
+// void inicia_eeprom() // Inicializa as vatiaveis
+// {
+	// pot_motor_m1 = 140;
+	// pot_motor_m2 = 160;
+	// t_giro_45 = 1100;
+	// t_giro_90 = 2100;
+	// t_anda_30 = 5000;
+	// ldr_limiar = 170;
+	// le_EEPROM();
+// }
+
 void inicia_menu() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
@@ -276,12 +291,7 @@ void inicia_menu() // Inicializa as vatiaveis
 void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	pot_motor_m1 = 140;
-	pot_motor_m2 = 154;
 	ligado = false;
-	t_giro_45 = 1200;
-	t_giro_90 = 2400;
-	t_anda_30 = 5000;
 	AFMS.begin(); // create with the default frequency 1.6KHz
 }
 
@@ -293,10 +303,12 @@ void inicia_sensor() // Inicializa as vatiaveis
 	ldr_cor[BLUE]	= 0.0;
 	led = 0;
 	cor = WHITE;
-	ldr_limiar = 100;
-	pinMode(RED,OUTPUT);
-	pinMode(GREEN,OUTPUT);
-	pinMode(BLUE,OUTPUT);
+	led_atual[0] = false;
+	led_atual[1] = false;
+	led_atual[2] = false;
+	pinMode(LED_RED_PIN,OUTPUT);
+	pinMode(LED_GRN_PIN,OUTPUT);
+	pinMode(LED_BLU_PIN,OUTPUT);
 }
 
 void 	inicia_entradas()
@@ -316,8 +328,8 @@ void 	inicia_entradas()
 	vai_vem.set_tam(6);
 	vai_vem.reset();
 	vai_vem.set( FRENTE,  t_anda_30 );
-	vai_vem.set( DIREITA, t_giro_90 );
-	vai_vem.set( DIREITA, t_giro_90 );
+	vai_vem.set( ESQUERDA, t_giro_90 );
+	vai_vem.set( ESQUERDA, t_giro_90 );
 	vai_vem.set( FRENTE,  t_anda_30 );
 	vai_vem.set( DIREITA, t_giro_90 );
 	vai_vem.set( DIREITA, t_giro_90 );
@@ -754,7 +766,7 @@ void m_configurar2(int n) // Configurar - nivel 2
 		}
 		else
 		{
-			estado_menu = (estado_menu*10)
+			estado_menu = (estado_menu*10);
 		}
 		break;
 	}
@@ -896,10 +908,10 @@ void m_informacoes(int n) // Informacoes - nivel 2
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
-		"Bateria        v",
 		"R    G    B     ",
 		"LDR             ",
 		"Objeto          ",
+		"Bateria        v",
 		"Tempo         s",
 	};
 
@@ -915,8 +927,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 	lcd.print (subtitulo[estado_menu%10]);
 	lcd.setCursor(10,1);
 
-	if (estado_menu == n+1) lcd.print (carga);
-	else if (estado_menu == n+2)
+	if (estado_menu == n+1)
 	{
 		lcd.setCursor(2,1);
 		lcd.print (ldr_cor[RED]);
@@ -925,8 +936,9 @@ void m_informacoes(int n) // Informacoes - nivel 2
 		lcd.setCursor(12,1);
 		lcd.print (ldr_cor[BLUE]);
 	}
-	else if (estado_menu == n+3) lcd.print (ldr_valor);
-	else if (estado_menu == n+4) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+	else if (estado_menu == n+2) lcd.print (ldr_valor);
+	else if (estado_menu == n+3) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+	else if (estado_menu == n+4) lcd.print (carga);
 	else if (estado_menu == n+5) lcd.print (millis());
 
 	switch (botao)
@@ -949,7 +961,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 
 		case SELECIONA:
 		if (estado_menu == n) estado_menu = (estado_menu/10);
-		else if (estado_menu == n+2) ve_cor();
+		else if (estado_menu == n+1) ve_cor();
 		break;
 	}
 }
@@ -961,10 +973,10 @@ void m_testes(int n) // Testes - nivel 2
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
-		"Motores auto    ",
+		"<  R   G   B   >",
 		"F     Anda     T",
 		"E     Gira     D",
-		"<  R   G   B   >",
+		"Motores auto    ",
 	};
 
 	if ((millis() - t_menu) > T_MAX_MENU)
@@ -1012,7 +1024,7 @@ void m_testes(int n) // Testes - nivel 2
 			break;
 		}
 	}
-	else if (estado_menu == n+4)
+	else if (estado_menu == n+1)
 	{
 		switch (led)
 		{
@@ -1096,7 +1108,7 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			tst = 2;
 		}
-		else if (estado_menu == n+4)
+		else if (estado_menu == n+1)
 		{
 			if (led > 0) led--;
 			else led = 4;
@@ -1115,7 +1127,7 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			tst = 0;
 		}
-		else if (estado_menu == n+1)
+		else if (estado_menu == n+4)
 		{
 			estado_menu = 10;
 			mov 	= 2;
@@ -1376,7 +1388,11 @@ int move_auto()
 	switch (estado_motor) {
 		case 0:	// Anda por 10 minutos
 		if (anda(FRENTE,T_MAX_ANDAR) == 1) return 1; // Acaba o tempo
-		else if (objeto) estado_motor = 1; 			// Encontra objeto
+		else if (objeto)  			// Encontra objeto
+		{
+			estado_motor = 1;
+			estado_move = 0;
+		}
 		break;
 
 		case 1: // Analiza cor do objeto
@@ -1404,22 +1420,57 @@ int move_auto()
 		}
 		if (cor == BLACK)
 		{
-			estado_motor = 6;
-			t_motor = millis();
+			estado_motor = 1;
+		}
+		if (cor == WHITE)
+		{
+			estado_motor = 1;
 		}
 		break;
 
 		case 2:
-		while (anda(TRAS,T_ANDA_RE) != 1); 	  	// anda para tras
+		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
+		t_motor = millis();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		t_motor = millis();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		t_motor = millis();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		t_motor = millis();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+		t_motor = millis();
+			// if (estado_move==0 && anda(TRAS,T_ANDA_RE)==1)
+		// {
+		// 	estado_move+=1;
+		// 	t_motor = millis();
+		// }
+		// else if (estado_move==1 && anda(DIREITA,t_giro_90)==1)
+		// {
+		// 	estado_move+=1;
+		// 	t_motor = millis();
+		// }
+		// else if (estado_move==2 && anda(DIREITA,t_giro_90)==1)
+		// {
+		// 	estado_move+=1;
+		// 	t_motor = millis();
+		// }
+		// else if (estado_move==3 && anda(DIREITA,t_giro_90)==1)
+		// {
+		// 	estado_move+=1;
+		// 	t_motor = millis();
+		// }
+		// else if (estado_move==4 && anda(DIREITA,t_giro_90)==1)
+		// {
+		// 	estado_move+=1;
+		// 	t_motor = millis();
+		// }
+		// else if (estado_move==5)
 		return 1;
 		break;
 
 		case 3:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
+		t_motor = millis();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
@@ -1427,6 +1478,7 @@ int move_auto()
 
 		case 4:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
+		t_motor = millis();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
@@ -1434,7 +1486,9 @@ int move_auto()
 
 		case 5:
 		while (anda(TRAS,T_ANDA_RE) != 1); 		// anda para tras
+		t_motor = millis();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
+		t_motor = millis();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
 		t_motor = millis();
@@ -1476,8 +1530,17 @@ int movimentos ()
 	}
 }
 
-void aciona_luz(bool r, bool g, bool b)
+int aciona_luz(bool r, bool g, bool b)
 {
+	if (led_atual[0] == r)
+	if (led_atual[1] == g)
+	if (led_atual[2] == b)
+	return 1;
+
+	led_atual[0] = r;
+	led_atual[1] = g;
+	led_atual[2] = b;
+
 	if (r) digitalWrite(LED_RED_PIN, HIGH);
 	else digitalWrite(LED_RED_PIN, LOW);
 
@@ -1486,6 +1549,8 @@ void aciona_luz(bool r, bool g, bool b)
 
 	if (b) digitalWrite(LED_BLU_PIN, HIGH);
 	else digitalWrite(LED_BLU_PIN, LOW);
+
+
 }
 
 int media_sensor(int n)
@@ -1507,7 +1572,8 @@ bool ve_objeto()
 
 void ve_cor()
 {
-	int r, g, b, cinza;
+	int r, g, b;
+	float cinza;
 
 	lcd.setCursor(0,1);	lcd.print ("Analizando      ");
 
@@ -1530,43 +1596,90 @@ void ve_cor()
 	lcd.setCursor(13,1);	lcd.print (".");
 	delay(200);
 
+
 	cinza = ldr_branco[RED]-ldr_preto[RED];
-	ldr_cor[RED] 	= ((r - ldr_preto[RED])*255)/(cinza);
+	ldr_cor[RED] 	= (r - ldr_preto[RED])*(255.0/cinza);
+
+	Serial.print("calculo red = ");
+	Serial.print(r);
+	Serial.print("-");
+	Serial.print(ldr_preto[RED]);
+	Serial.print("*255 /");
+	Serial.println(cinza);
 
 	cinza = ldr_branco[GREEN]-ldr_preto[GREEN];
-	ldr_cor[GREEN] 	= ((g - ldr_preto[GREEN])*255)/(cinza);
+	ldr_cor[GREEN] 	= (g - ldr_preto[GREEN])*(255.0/cinza);
+
+	Serial.print("calculo green = ");
+	Serial.print(g);
+	Serial.print("-");
+	Serial.print(ldr_preto[GREEN]);
+	Serial.print("*255 /");
+	Serial.println(cinza);
 
 	cinza = ldr_branco[BLUE]-ldr_preto[BLUE];
-	ldr_cor[BLUE] 	= ((b - ldr_preto[BLUE])*255)/(cinza);
+	ldr_cor[BLUE] 	= (b - ldr_preto[BLUE])*(255.0/cinza);
 
-	if (ldr_cor[RED] == ldr_cor[GREEN] && ldr_cor[GREEN] == ldr_cor[BLUE])
-	{
-		if (ldr_cor[RED] < 10) cor = BLACK;
-		else cor = WHITE;
-	}
-	else if (ldr_cor[RED] > ldr_cor[GREEN] && ldr_cor[RED] > ldr_cor[BLUE])
-	{
-		if (ldr_cor[GREEN] > ldr_cor[BLUE]) cor = YELLOW;
-		else cor = RED;
-	}
-	else if (ldr_cor[GREEN] > ldr_cor[RED] && ldr_cor[GREEN] > ldr_cor[BLUE])
-	{
-		cor = GREEN;
-	}
-	else cor = BLUE;
+	Serial.print("calculo blue = ");
+	Serial.print(b);
+	Serial.print("-");
+	Serial.print(ldr_preto[BLUE]);
+	Serial.print("*255 /");
+	Serial.println(cinza);
 
+	Serial.print("bruto =  ");
+	Serial.print(r);
+	Serial.print(", ");
+	Serial.print(g);
+	Serial.print(", ");
+	Serial.println(b);
 
+	if ((ldr_cor[RED] + ldr_cor[GREEN] + ldr_cor[BLUE]) < 50)
+	{
+		cor = BLACK;
+	}
+	else if ((ldr_cor[RED] + ldr_cor[GREEN] + ldr_cor[BLUE]) > 700)
+	{
+		cor = WHITE;
+	}
+	else
+	{
+		cinza = (ldr_cor[RED] + ldr_cor[GREEN] + ldr_cor[BLUE]);
+		r = (100.0 * ldr_cor[RED]) / cinza;
+		g = (100.0 * ldr_cor[GREEN]) / cinza;
+		b = (100.0 * ldr_cor[BLUE]) / cinza;
+
+		if (ldr_cor[RED] > ldr_cor[GREEN] && ldr_cor[RED] > ldr_cor[BLUE])
+		{
+			if ((r-g) < 20) cor = YELLOW;
+			else cor = RED;
+		}
+		else if (ldr_cor[GREEN] > ldr_cor[RED] && ldr_cor[GREEN] > ldr_cor[BLUE])
+		{
+			cor = GREEN;
+		}
+		else cor = BLUE;
+	}
+	Serial.print("calculo =  ");
 	Serial.print(ldr_cor[RED]);
 	Serial.print(", ");
 	Serial.print(ldr_cor[GREEN]);
 	Serial.print(", ");
 	Serial.println(ldr_cor[BLUE]);
 
+	Serial.print("percent =  ");
+	Serial.print(r);
+	Serial.print(", ");
+	Serial.print(g);
+	Serial.print(", ");
+	Serial.println(b);
+
 	lcd.setCursor(0,1);
 	lcd.print ("                ");
 	lcd.setCursor(0,1);
 	lcd.print (nome_cor[cor]);
 	Serial.println(nome_cor[cor]);
+
 	delay(1000);
 }
 
