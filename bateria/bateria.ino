@@ -1,4 +1,6 @@
 /*
+reference: http://labdegaragem.com/forum/topics/ler-carga-da-bateria-que-alimenta-arduino
+
      Battery Characterization Tool
 
      11/7/2009 John Terry

@@ -4,19 +4,22 @@ SUMARIO do MENU
 - Iniciar
 --|- Iniciar(aciona funcionanento principal)
 - Configurar
---|- Balanco branco
---|- Balanco preto
---|- LDR Lmt (fator de corte para encontrar objetos)
---|- pot ME (potencia do motor da roda esquerda)
---|- pot MD (potencia do motor da roda direita)
---|- anda30 (tempo para o robor andar 30cm)
---|- giro90 (tempo para o robo girar 90 graus)
+--|- Movimento
+-----|- pot ME (potencia do motor da roda esquerda)
+-----|- pot MD (potencia do motor da roda direita)
+-----|- anda30 (tempo para o robor andar 30cm)
+-----|- giro90 (tempo para o robo girar 90 graus)
+--|- Visao
+-----|- Balanco branco
+-----|- Balanco preto
+-----|- LDR Lmt (fator de corte para encontrar objetos)
 --|- GRAVAR (grava dados no EEPROM)
 --|- LE SALVO (le dados do EEPROM)
 - Informacoes
---|- Bateria
---|- RGB (Intencidade refletida por cor(%))
+--|- RGB (Intencidade refletida por cor(0-255))
 --|- LDR (Intencidade refletida atual)
+--|- Objeto (Existe objeto na frente do robo)
+--|- Bateria
 --|- Tempo (tempo de fincionam. do arduino em ms)
 - Testes
 --|- Motores auto (Movimentos pre estabelecidos)
@@ -87,12 +90,12 @@ class entrada
 	int direcao[50];
 	int tempo[50];
 public:
-	void set_tam(int n);
+	void set_tam(int);
 	int  get_tam();
 	void reset();
-	void set(int n, int m);
-	int  get_dir(int n);
-	int  get_tmp(int n);
+	void set(int,int);
+	int  get_dir(int);
+	int  get_tmp(int);
 	void print();
 };
 void entrada::set_tam(int n)
@@ -130,6 +133,35 @@ void entrada::print()
 		Serial.println(" )");
 	}
 	Serial.println();
+}
+
+class conta_tempo
+{
+	unsigned long tmp;
+	int t_max;
+public:
+	conta_tempo(int max);
+	void reset();
+	int get_tempo();
+	void print();
+};
+conta_tempo::conta_tempo(int max)
+{
+	t_max = max;
+}
+void conta_tempo::reset()
+{
+	tmp = millis();
+}
+int conta_tempo::get_tempo()
+{
+	return (int)(millis-tmp);
+}
+void conta_tempo::print()
+{
+	Serial.print("tempo = ");
+	Serial.print(get_tempo()/1000.0);
+	Serial.println(" s");
 }
 
 /* variaveis globais */
@@ -539,9 +571,9 @@ void m_inicio(int n) // MENU - Nivel 1
 		break;
 	}
 }
-void m_conf_motor(int n)
+void m_conf_movimento(int n)
 {
-	String titulo = "     MOTORES    ";
+	String titulo = "    MOVIMENTO   ";
 	int ns = 5;
 	String subtitulo[ns] = {
 		"Voltar          ",
@@ -636,9 +668,9 @@ void m_conf_motor(int n)
 
 }
 
-void m_conf_sensor(int n)
+void m_conf_visao(int n)
 {
-	String titulo = "    SENSORES    ";
+	String titulo = "      VISAO     ";
 	int ns = 4;
 	String subtitulo[ns] = {
 		"Voltar          ",
@@ -707,14 +739,14 @@ void m_conf_sensor(int n)
 
 }
 
-void m_configurar2(int n) // Configurar - nivel 2
+void m_configurar(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
 	int ns = 5;
 	String subtitulo[ns] = {
 		"Voltar          ",
-		"Motores         ",
-		"Sensores        ",
+		"Movimento       ",
+		"Visao           ",
 		"     GRAVAR     ",
 		"    LE SALVO    "
 	};
@@ -771,7 +803,7 @@ void m_configurar2(int n) // Configurar - nivel 2
 		break;
 	}
 }
-void m_configurar(int n) // Configurar - nivel 2
+void m_configurar1(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
 	int ns = 10;
@@ -1271,8 +1303,8 @@ void menu() // Gerenciador do menu e suas opcoes
 	else if (estado_menu < 60) m_pre_moves(50);
 	else if (estado_menu < 70) m_creditos(60);
 	else if (estado_menu < 30) m_configurar(20);
-	else if (estado_menu < 220) m_conf_motor(210);
-	else if (estado_menu < 230) m_conf_sensor(220);
+	else if (estado_menu < 220) m_conf_movimento(210);
+	else if (estado_menu < 230) m_conf_visao(220);
 }
 
 void aciona_motor (int m1, int m2)

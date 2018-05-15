@@ -26,7 +26,7 @@ void loop()
 	Serial.println(readVcc());
 }
 
-long readVcc() {
+long readVcc() { // reference: http://www.foobert.com/blog/2009/11/08/arduino-battery-capacity/comment-page-1/
   // Read 1.1V reference against AVcc
   // set the reference to Vcc and the measurement to the internal 1.1V reference
   #if defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
