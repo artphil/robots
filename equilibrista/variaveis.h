@@ -35,7 +35,7 @@ int 	t_anda_raiz;
 int 	t_teste;
 int 	t_anda_re;
 
-// Sequenciass de movimentos
+// Sequencias de movimentos
 entrada teste;
 entrada vai_vem;
 entrada triangulo;
@@ -45,9 +45,12 @@ entrada giro90;
 
 // Leds e sensores
 int 	led;			// Led aceso
-bool 	led_atual[3];		// Verifica se a mudou a os leds
+bool 	led_atual[3];	// Verifica se a mudou a os leds
 int 	cor;			// Cor encontrada
 int 	ldr_valor;		// Intencidade de luz captada
+int 	ldr_direita;	// Intencidade de luz captada no ldr direito
+int 	ldr_esquerda;	// Intencidade de luz captada no ldr esquerdo
+int 	ldr_direcao;	// Direcao da maior intencidade de luz
 int 	ldr_limiar;		// Valor limite para ver objeto
 int 	ldr_cor[3];		// Taxa de reflexao de cor (Red Green Blue)
 int 	ldr_branco[3];	// Taxa de reflexao de cor (Red Green Blue)

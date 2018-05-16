@@ -227,3 +227,22 @@ void balanco_preto()
 	lcd.setCursor(15,1);	lcd.print (".");
 	delay(200);
 }
+
+int diferenca_ldr()
+{
+	Serial.print("Difernça ldr =");
+	Serial.println(abs(ldr_esquerda-ldr_direita));
+	if (ldr_esquerda>ldr_direita)
+	{
+		ldr_direcao = ESQUERDA;
+	}
+	else if (ldr_esquerda<ldr_direita)
+	{
+		ldr_direcao = DIREITA;
+	}
+	else
+	{
+		ldr_direcao = 0;
+	}
+	return abs(ldr_esquerda-ldr_direita);
+}

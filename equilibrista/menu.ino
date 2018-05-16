@@ -206,7 +206,7 @@ void m_conf_movimento(int n) // Configurar - Visao - nivel 2
 		"Voltar          ",
 		"pot ME -       +",
 		"pot MD -       +",
-		"anda30 -       +",
+		"anda   -       +",
 		"giro90 -       +"
 	};
 
@@ -373,11 +373,13 @@ void m_informacoes(int n) // Informacoes - nivel 2
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
+		"LDR2      |     ",
+		"LDR dir         ",
 		"R    G    B     ",
 		"LDR             ",
 		"Objeto          ",
 		"Bateria        v",
-		"Tempo         s",
+		"Tempo          s",
 	};
 
 	if ((millis() - t_menu) > T_MAX_MENU)
@@ -394,6 +396,30 @@ void m_informacoes(int n) // Informacoes - nivel 2
 
 	if (estado_menu == n+1)
 	{
+		lcd.setCursor(5,1);
+		lcd.print (ldr_esquerda);
+		lcd.setCursor(11,1);
+		lcd.print (ldr_direita);
+	}
+	else if (estado_menu == n+2)
+	{
+		switch (ldr_direcao)
+		{
+			case DIREITA:
+			lcd.print ("Direita");
+			break;
+
+			case ESQUERDA:
+			lcd.print ("Esquerda");
+			break;
+
+			default:
+			lcd.print (ldr_direcao);
+			break;
+		}
+	}
+	else if (estado_menu == n+3)
+	{
 		lcd.setCursor(2,1);
 		lcd.print (ldr_cor[RED]);
 		lcd.setCursor(7,1);
@@ -401,10 +427,10 @@ void m_informacoes(int n) // Informacoes - nivel 2
 		lcd.setCursor(12,1);
 		lcd.print (ldr_cor[BLUE]);
 	}
-	else if (estado_menu == n+2) lcd.print (ldr_valor);
-	else if (estado_menu == n+3) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
-	else if (estado_menu == n+4) lcd.print (carga);
-	else if (estado_menu == n+5) lcd.print (millis());
+	else if (estado_menu == n+4) lcd.print (ldr_valor);
+	else if (estado_menu == n+5) objeto ? lcd.print ("SIM") : lcd.print ("NAO");
+	else if (estado_menu == n+6) lcd.print (carga);
+	else if (estado_menu == n+7) lcd.print (millis());
 
 	switch (botao)
 	{
@@ -426,7 +452,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 
 		case SELECIONA:
 		if (estado_menu == n) estado_menu = (estado_menu/10);
-		else if (estado_menu == n+1) ve_cor();
+		else if (estado_menu == n+3) ve_cor();
 		break;
 	}
 }

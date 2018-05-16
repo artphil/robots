@@ -20,7 +20,7 @@ using namespace std;
 /* definicoes de auxilio */
 
 // Nome que aparece no menu
-#define NOME_ROBO 	" MEGAZORD  v2.0 "
+#define NOME_ROBO 	" MEGAZORD  v2.1 "
 
 // Direcoes para fins diversos
 #define DIREITA 	1
@@ -45,6 +45,8 @@ using namespace std;
 #define LED_GRN_PIN	 	25
 #define LED_BLU_PIN 	27
 #define LDR_PIN 		8
+#define LDR_E_PIN 		9
+#define LDR_D_PIN 		10
 
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
