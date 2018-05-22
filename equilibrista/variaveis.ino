@@ -6,10 +6,16 @@ void atualiza () // Atualiza as constantes utilizadas
 {
 	int sensorValue = analogRead(A0);
 	carga = sensorValue * (5.0 / 1023.0);
+
 	ldr_valor = analogRead(LDR_PIN);
 	ldr_direita = analogRead(LDR_D_PIN);
 	ldr_esquerda = analogRead(LDR_E_PIN);
+
+	encdr_d_valor = encoder_E.read();
+	encdr_e_valor = encoder_D.read();
+
 	objeto = ve_objeto();
+
 	botao = 0;
 }
 

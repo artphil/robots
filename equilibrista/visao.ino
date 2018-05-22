@@ -232,17 +232,21 @@ int diferenca_ldr()
 {
 	Serial.print("Difernça ldr =");
 	Serial.println(abs(ldr_esquerda-ldr_direita));
+	Serial.print("Direção =");
 	if (ldr_esquerda>ldr_direita)
 	{
 		ldr_direcao = ESQUERDA;
+		Serial.println("Esquerda");
 	}
 	else if (ldr_esquerda<ldr_direita)
 	{
 		ldr_direcao = DIREITA;
+		Serial.println("Direita");
 	}
 	else
 	{
 		ldr_direcao = 0;
+		Serial.println("Centro");
 	}
 	return abs(ldr_esquerda-ldr_direita);
 }

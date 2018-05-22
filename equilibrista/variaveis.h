@@ -1,3 +1,5 @@
+#include "ambiente.h"
+
 /* variaveis globais */
 
 // Objeto Display
@@ -5,6 +7,9 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
 // Objeto Motor
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
+
+Encoder encoder_D(ENCDR_D1_PIN, ENCDR_D2_PIN);
+Encoder encoder_E(ENCDR_E1_PIN, ENCDR_E2_PIN);
 
 Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
 Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
@@ -67,6 +72,10 @@ String	nome_cor[] =
 	"Branco",
 	"Preto"
 };						// Nome das cores
+
+// odometria
+int encdr_d_valor;
+int encdr_e_valor;
 
 // Atualiza as constantes utilizadas
 void 	atualiza ();

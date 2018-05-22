@@ -16,14 +16,14 @@ void m_creditos(int);	 	// Creditos - nivel 2
 
 void menu() // Gerenciador do menu e suas opcoes
 {
-	if (estado_menu < 10) m_inicio(0);
-	else if (estado_menu < 20) m_iniciar(10);
-	else if (estado_menu < 30) m_configurar(20);
-	else if (estado_menu < 40) m_informacoes(30);
-	else if (estado_menu < 50) m_testes(40);
-	else if (estado_menu < 60) m_pre_moves(50);
-	else if (estado_menu < 70) m_creditos(60);
-	else if (estado_menu < 30) m_configurar(20);
+	if (estado_menu < 10) 		m_inicio(0);
+	else if (estado_menu < 20)  m_iniciar(10);
+	else if (estado_menu < 30)  m_configurar(20);
+	else if (estado_menu < 40)  m_informacoes(30);
+	else if (estado_menu < 50)  m_testes(40);
+	else if (estado_menu < 60)  m_pre_moves(50);
+	else if (estado_menu < 70)  m_creditos(60);
+	else if (estado_menu < 30)  m_configurar(20);
 	else if (estado_menu < 220) m_conf_movimento(210);
 	else if (estado_menu < 230) m_conf_visao(220);
 }
@@ -127,7 +127,6 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		else
 		{
 			lcd.print ("Ja em operacao  ");
-			estado_menu = 0;
 		}
 	}
 	else if (estado_liga > 10) estado_menu = 0;
@@ -369,7 +368,7 @@ void m_conf_visao(int n) // Configurar - Visao - nivel 2
 void m_informacoes(int n) // Informacoes - nivel 2
 {
 	String titulo = "  INFORMACOES  ";
-	int ns = 6;
+	int ns = 8;
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
@@ -452,6 +451,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 
 		case SELECIONA:
 		if (estado_menu == n) estado_menu = (estado_menu/10);
+		else if (estado_menu == n+2) diferenca_ldr();
 		else if (estado_menu == n+3) ve_cor();
 		break;
 	}

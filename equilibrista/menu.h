@@ -1,3 +1,4 @@
+#include "ambiente.h"
 /*-------------------------------------------
 SUMARIO do MENU
 - Mascara (Sublinha em branco)
