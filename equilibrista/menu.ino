@@ -2,16 +2,16 @@
 
 /* funcoes */
 int verifica_botao (); 		// Identifica qual botao foi acionado
-void m_inicio(int); 		// MENU - Nivel 1
 void m_iniciar(int);		// Inicia processo de movimentos
-void m_configurar(int); 	// Configurar - nivel 2
-void m_conf_movimento(int);	// Configurar - Movimento - nivel 3
-void m_conf_visao(int); 	// Configurar - Visao - nivel 3
-void m_conf_odometro(int); 	// Configurar - Odometro - nivel 3
-void m_informacoes(int); 	// Informacoes - nivel 2
-void m_testes(int); 		// Testes - nivel 2
-void m_pre_moves(int); 		// Pre moves - nivel 2
-void m_creditos(int);	 	// Creditos - nivel 2
+void m_inicio(int); 		// MENU 		- nivel 1
+void m_configurar(int); 	// Configurar 	- nivel 2
+void m_conf_movimento(int);	// Configurar 	- Movimento - nivel 3
+void m_conf_visao(int); 	// Configurar 	- Visao 	- nivel 3
+void m_conf_odometro(int); 	// Configurar 	- Odometro 	- nivel 3
+void m_informacoes(int); 	// Informacoes 	- nivel 2
+void m_testes(int); 		// Testes 		- nivel 2
+void m_pre_moves(int); 		// Pre moves 	- nivel 2
+void m_creditos(int);	 	// Creditos 	- nivel 2
 
 /* implementação das funcoes */
 
@@ -58,9 +58,9 @@ void m_inicio(int n) // MENU - Nivel 1
 		"Creditos        "
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -91,7 +91,7 @@ void m_inicio(int n) // MENU - Nivel 1
 		if (estado_menu == 1)
 		{
 			mov = 1;
-			t_liga = millis();
+			t_liga.reset();
 			estado_liga = 0;
 		}
 		estado_menu = (estado_menu*10)+1;
@@ -105,9 +105,9 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 	lcd.print (NOME_ROBO);
 	lcd.setCursor(0,1);
 
-	if ((millis() - t_liga) > 1000)
+	if (t_liga.fim())
 	{
-		t_liga = millis();
+		t_liga.reset();
 		estado_liga += 1;
 	}
 
@@ -147,9 +147,9 @@ void m_configurar(int n) // Configurar - nivel 2
 		"    LE SALVO    "
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -194,7 +194,7 @@ void m_configurar(int n) // Configurar - nivel 2
 		}
 		else
 		{
-			estado_menu = (estado_menu*10);
+			estado_menu = (estado_menu*10)+1;
 		}
 		break;
 	}
@@ -208,13 +208,13 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 		"Voltar          ",
 		"pot ME -       +",
 		"pot MD -       +",
-		"anda   -       +",
-		"giro90 -       +"
+		"anda   -      s+",
+		"giro90 -      s+"
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -308,9 +308,9 @@ void m_conf_visao(int n) // Configurar - Visao - nivel 2
 		"LDRlmt -       +"
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -379,9 +379,9 @@ void m_conf_odometro(int n) // Configurar - Odometro - nivel 3
 		"Calibra motor   "
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -461,9 +461,9 @@ void m_informacoes(int n) // Informacoes - nivel 2
 		"Tempo          s",
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -550,9 +550,9 @@ void m_testes(int n) // Testes - nivel 2
 		"Motores auto    ",
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -702,7 +702,7 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			estado_menu = 10;
 			mov 	= 2;
-			t_liga = millis();
+			t_liga.reset();
 			estado_liga = 0;
 		}
 		break;
@@ -712,7 +712,7 @@ void m_testes(int n) // Testes - nivel 2
 void m_pre_moves(int n) // Pre moves - nivel 2
 {
 	String titulo = "   PRE  MOVES   ";
-	int ns = 6;
+	int ns = 7;
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
@@ -721,11 +721,12 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 		"Quadrado        ",
 		"Giro 45         ",
 		"Giro 90         ",
+		"Busca Luz       ",
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -733,7 +734,7 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 	lcd.print (titulo);
 	lcd.setCursor(0,1);
 	lcd.print (subtitulo[estado_menu%10]);
-	mov = (estado_menu%10)+2;
+	mov = (estado_menu%10)+2;  // define a acao do robo
 
 	switch (botao)
 	{
@@ -758,7 +759,7 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 		else
 		{
 			estado_menu = 10;
-			t_liga = millis();
+			t_liga.reset();
 			estado_liga = 0;
 		}
 		break;
@@ -780,9 +781,9 @@ void m_creditos(int n) // Creditos - nivel 2
 		" Professor: Douglas G. Macharet - Introducao a Robotica - UFMG        "
 	};
 
-	if ((millis() - t_menu) > T_MAX_MENU)
+	if (t_menu.fim())
 	{
-		t_menu = millis();
+		t_menu.reset();
 		botao = verifica_botao();
 	}
 
@@ -791,9 +792,9 @@ void m_creditos(int n) // Creditos - nivel 2
 
 	if (desliza && estado_menu != n)
 	{
-		if ((millis() - t_liga) > T_NOME)
+		if (t_nome.fim())
 		{
-			t_liga = millis();
+			t_nome.reset();
 			letra += 1;
 			if (letra >= tam) letra = 0;
 		}

@@ -83,7 +83,6 @@ void inicia_menu() // Inicializa as vatiaveis
 	// Parametros iniciais
 	estado_menu = 0;
 	estado_menu = 0;
-	t_menu = 0;
 	lcd.begin(16, 2);
 }
 
@@ -91,8 +90,8 @@ void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	t_teste = 2000;
-	pot_motor_D = 160;
-	pot_motor_E = 140;
+	pot_motor_D = 200;
+	pot_motor_E = 200;
 	t_anda  	= 5000;
 	t_anda_raiz = sqrt(t_anda);
 	t_giro_90  	= 2400;

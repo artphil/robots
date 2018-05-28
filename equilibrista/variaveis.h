@@ -20,12 +20,12 @@ int 	tst;			// intica qual teste esta sendo realizado
 int 	estado_menu;	// Posicao na pilha do menu
 int 	estado_antigo;	// Posicao anterior na pilha do menu
 int 	estado_liga;	// Posicao na pilha do menu 11
-unsigned long t_menu;	// Contador de tempo do menu
-// conta_tempo t_menu(180);
-unsigned long t_liga;	// Contador de tempo do menu 11
+conta_tempo t_menu(180); 	// Contador de tempo do menu
+conta_tempo t_liga(1000);	// Contador de tempo do menu 11
 // Interacao do menu CREDITOS
 int letra = 0;
 bool desliza = true;
+conta_tempo t_nome(400);	// Contador de tempo do menu 11
 
 // Controle do motor
 int 	estado_motor;	// Posicao na pilha de acoes do motor
@@ -57,6 +57,7 @@ int 	ldr_valor;		// Intencidade de luz captada
 int 	ldr_direita;	// Intencidade de luz captada no ldr direito
 int 	ldr_esquerda;	// Intencidade de luz captada no ldr esquerdo
 int 	ldr_direcao;	// Direcao da maior intencidade de luz
+int 	ldr_dif_max;	// Direcao da maior intencidade de luz
 int 	ldr_limiar;		// Valor limite para ver objeto
 int 	ldr_cor[3];		// Taxa de reflexao de cor (Red Green Blue)
 int 	ldr_branco[3];	// Taxa de reflexao de cor (Red Green Blue)

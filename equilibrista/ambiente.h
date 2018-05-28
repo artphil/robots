@@ -56,4 +56,3 @@ using namespace std;
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
 #define T_MAX_ANDAR		10000
-#define T_NOME  		400

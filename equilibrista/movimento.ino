@@ -198,6 +198,30 @@ int move_auto()
 	return 0;
 }
 
+int busca_luz(int n)
+{
+	int luz = diferenca_ldr();
+	if (n == 0)
+	{
+		n += anda(ESQUERDA,4*t_giro_90);
+		ldr_dif_max = (ldr_dif_max>luz) ? ldr_dif_max : luz;
+	}
+	else if (n == 1)
+	{
+		ldr_dif_max -= 10;
+		n++;
+	}
+	else if (n == 2)
+	{
+		anda(DIREITA,4*t_giro_90);
+		if (ldr_dif_max < luz) {
+			aciona_motor(0,0);
+			return 1;
+		}
+	}
+	return 0;
+}
+
 int movimentos ()
 {
 	if (!ligado || mov == 0) return 0;
@@ -228,5 +252,9 @@ int movimentos ()
 	else if (mov == 7)
 	{
 		if (move(giro90) == 1) 		ligado = false;
+	}
+	else if (mov == 8)
+	{
+		if (busca_luz(0) == 1) 		ligado = false;
 	}
 }
