@@ -21,6 +21,7 @@ int 	estado_menu;	// Posicao na pilha do menu
 int 	estado_antigo;	// Posicao anterior na pilha do menu
 int 	estado_liga;	// Posicao na pilha do menu 11
 unsigned long t_menu;	// Contador de tempo do menu
+// conta_tempo t_menu(180);
 unsigned long t_liga;	// Contador de tempo do menu 11
 // Interacao do menu CREDITOS
 int letra = 0;

@@ -18,6 +18,7 @@ void calcula_PD ()
 
 	if (pot_motor_E > 255) pot_motor_E = 255;
 	if (pot_motor_E < 0) pot_motor_E = 0;
+	
 }
 
 void calibra_motor ()
@@ -26,6 +27,7 @@ void calibra_motor ()
 
 	do {
 		t_calib.reset();
+		reset_encoders();
 		while (!t_calib.fim()) aciona_motor(1,1);
 		calcula_PD();
 	} while(ultimo_erro != 0);
