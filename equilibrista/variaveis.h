@@ -11,8 +11,8 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 Encoder encoder_D(ENCDR_D1_PIN, ENCDR_D2_PIN);
 Encoder encoder_E(ENCDR_E1_PIN, ENCDR_E2_PIN);
 
-Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
+Adafruit_DCMotor *motor_D = AFMS.getMotor(1);
+Adafruit_DCMotor *motor_E = AFMS.getMotor(3);
 
 // Interacao do menu Geral
 int 	botao;			// Botao pressionado no momento
@@ -29,8 +29,8 @@ bool desliza = true;
 // Controle do motor
 int 	estado_motor;	// Posicao na pilha de acoes do motor
 int 	estado_move;	// Posicao na pilha de acoes do motor
-int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
-int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
+int 	pot_motor_D;	// Forca de Trabalho (aplicada no motor)
+int 	pot_motor_E;	// Forca de Trabalho (aplicada no motor)
 int 	mov;			// Movimento a ser efetuado;
 bool	ligado;			// Informa se o robo esta funcionando;
 int 	t_giro_45;
@@ -76,6 +76,11 @@ String	nome_cor[] =
 // odometria
 int encdr_d_valor;
 int encdr_e_valor;
+int esperado;
+int ultimo_erro;
+float KP;
+float KD;
+
 
 // Atualiza as constantes utilizadas
 void 	atualiza ();

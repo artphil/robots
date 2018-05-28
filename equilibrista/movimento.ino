@@ -6,32 +6,32 @@ void aciona_motor (int m1, int m2)
 {
 	if (m1 > 0)
 	{
-		motor_m1->setSpeed(pot_motor_m1);
-		motor_m1->run(FORWARD);
+		motor_D->setSpeed(pot_motor_D);
+		motor_D->run(FORWARD);
 	}
 	else if (m1 < 0)
 	{
-		motor_m1->setSpeed(pot_motor_m1);
-		motor_m1->run(BACKWARD);
+		motor_D->setSpeed(pot_motor_D);
+		motor_D->run(BACKWARD);
 	}
 	else
 	{
-		motor_m1->run(RELEASE);
+		motor_D->run(RELEASE);
 	}
 
 	if (m2 > 0)
 	{
-		motor_m2->setSpeed(pot_motor_m2);
-		motor_m2->run(FORWARD);
+		motor_E->setSpeed(pot_motor_E);
+		motor_E->run(FORWARD);
 	}
 	else if (m2 < 0)
 	{
-		motor_m2->setSpeed(pot_motor_m2);
-		motor_m2->run(BACKWARD);
+		motor_E->setSpeed(pot_motor_E);
+		motor_E->run(BACKWARD);
 	}
 	else
 	{
-		motor_m2->run(RELEASE);
+		motor_E->run(RELEASE);
 	}
 }
 

@@ -50,6 +50,11 @@ conta_tempo::conta_tempo(int max)
 	t_max = max;
 }
 
+bool conta_tempo::fim()
+{
+	return ((millis()-tmp)>t_max) ? true : false;
+}
+
 void conta_tempo::reset()
 {
 	tmp = millis();
@@ -57,7 +62,7 @@ void conta_tempo::reset()
 
 int conta_tempo::get_tempo()
 {
-	return (int)(millis-tmp);
+	return (int)(millis()-tmp);
 }
 
 void conta_tempo::print()

@@ -22,6 +22,7 @@ class conta_tempo
 	int t_max;
 public:
 	conta_tempo(int max);
+	bool fim();
 	void reset();
 	int get_tempo();
 	void print();

@@ -172,8 +172,8 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 // Objeto Motor
 Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
-Adafruit_DCMotor *motor_m1 = AFMS.getMotor(1);
-Adafruit_DCMotor *motor_m2 = AFMS.getMotor(3);
+Adafruit_DCMotor *motor_D = AFMS.getMotor(1);
+Adafruit_DCMotor *motor_E = AFMS.getMotor(3);
 
 // Interacao do menu Geral
 int 	botao;			// Botao pressionado no momento
@@ -190,8 +190,8 @@ bool desliza = true;
 // Controle do motor
 int 	estado_motor;	// Posicao na pilha de acoes do motor
 int 	estado_move;	// Posicao na pilha de acoes do motor
-int 	pot_motor_m1;	// Forca de Trabalho (aplicada no motor)
-int 	pot_motor_m2;	// Forca de Trabalho (aplicada no motor)
+int 	pot_motor_D;	// Forca de Trabalho (aplicada no motor)
+int 	pot_motor_E;	// Forca de Trabalho (aplicada no motor)
 int 	mov;			// Movimento a ser efetuado;
 bool	ligado;			// Informa se o robo esta funcionando;
 int t_giro_45;
@@ -303,8 +303,8 @@ void loop()
 
 // void inicia_eeprom() // Inicializa as vatiaveis
 // {
-	// pot_motor_m1 = 140;
-	// pot_motor_m2 = 160;
+	// pot_motor_D = 140;
+	// pot_motor_E = 160;
 	// t_giro_45 = 1100;
 	// t_giro_90 = 2100;
 	// t_anda = 5000;
@@ -428,8 +428,8 @@ void grava_EEPROM ()
 	lcd.setCursor(0,1);
 	lcd.print ("Gravando        ");
 
-	EEPROM.write(0, pot_motor_m1);
-	EEPROM.write(1, pot_motor_m2);
+	EEPROM.write(0, pot_motor_D);
+	EEPROM.write(1, pot_motor_E);
 
 	EEPROM.write(2, ldr_limiar);
 
@@ -456,8 +456,8 @@ void le_EEPROM ()
 	lcd.setCursor(0,1);
 	lcd.print ("Lendo dados     ");
 
-	pot_motor_m1 = EEPROM.read(0);
-	pot_motor_m2 = EEPROM.read(1);
+	pot_motor_D = EEPROM.read(0);
+	pot_motor_E = EEPROM.read(1);
 
 	ldr_limiar   = EEPROM.read(2);
 
@@ -595,8 +595,8 @@ void m_conf_movimento(int n)
 	lcd.print (subtitulo[estado_menu%10]);
 	lcd.setCursor(10,1);
 
-	if (estado_menu == n+1) lcd.print (pot_motor_m1);
-	else if (estado_menu == n+2) lcd.print (pot_motor_m2);
+	if (estado_menu == n+1) lcd.print (pot_motor_D);
+	else if (estado_menu == n+2) lcd.print (pot_motor_E);
 	else if (estado_menu == n+3) lcd.print (t_anda);
 	else if (estado_menu == n+4) lcd.print (t_giro_90);
 
@@ -615,11 +615,11 @@ void m_conf_movimento(int n)
 		case DIREITA:
 		if (estado_menu == n+1)
 		{
-			if (pot_motor_m1 < 255) pot_motor_m1++;
+			if (pot_motor_D < 255) pot_motor_D++;
 		}
 		else if (estado_menu == n+2)
 		{
-			if (pot_motor_m2 < 255) pot_motor_m2++;
+			if (pot_motor_E < 255) pot_motor_E++;
 		}
 		else if (estado_menu == n+3)
 		{
@@ -638,11 +638,11 @@ void m_conf_movimento(int n)
 		case ESQUERDA:
 		if (estado_menu == n+1)
 		{
-			if (pot_motor_m1 > 0) pot_motor_m1--;
+			if (pot_motor_D > 0) pot_motor_D--;
 		}
 		else if (estado_menu == n+2)
 		{
-			if (pot_motor_m2 > 0) pot_motor_m2--;
+			if (pot_motor_E > 0) pot_motor_E--;
 		}
 		else if (estado_menu == n+3)
 		{
@@ -833,8 +833,8 @@ void m_configurar1(int n) // Configurar - nivel 2
 	lcd.setCursor(10,1);
 
 	if (estado_menu == n+3)      lcd.print (ldr_limiar);
-	else if (estado_menu == n+4) lcd.print (pot_motor_m1);
-	else if (estado_menu == n+5) lcd.print (pot_motor_m2);
+	else if (estado_menu == n+4) lcd.print (pot_motor_D);
+	else if (estado_menu == n+5) lcd.print (pot_motor_E);
 	else if (estado_menu == n+6) lcd.print (t_anda);
 	else if (estado_menu == n+7) lcd.print (t_giro_90);
 
@@ -857,11 +857,11 @@ void m_configurar1(int n) // Configurar - nivel 2
 		}
 		else if (estado_menu == n+4)
 		{
-			if (pot_motor_m1 < 255) pot_motor_m1++;
+			if (pot_motor_D < 255) pot_motor_D++;
 		}
 		else if (estado_menu == n+5)
 		{
-			if (pot_motor_m2 < 255) pot_motor_m2++;
+			if (pot_motor_E < 255) pot_motor_E++;
 		}
 		else if (estado_menu == n+6)
 		{
@@ -884,11 +884,11 @@ void m_configurar1(int n) // Configurar - nivel 2
 		}
 		else if (estado_menu == n+4)
 		{
-			if (pot_motor_m1 > 0) pot_motor_m1--;
+			if (pot_motor_D > 0) pot_motor_D--;
 		}
 		else if (estado_menu == n+5)
 		{
-			if (pot_motor_m2 > 0) pot_motor_m2--;
+			if (pot_motor_E > 0) pot_motor_E--;
 		}
 		else if (estado_menu == n+6)
 		{
@@ -1311,32 +1311,32 @@ void aciona_motor (int m1, int m2)
 {
 	if (m1 > 0)
 	{
-		motor_m1->setSpeed(pot_motor_m1);
-		motor_m1->run(FORWARD);
+		motor_D->setSpeed(pot_motor_D);
+		motor_D->run(FORWARD);
 	}
 	else if (m1 < 0)
 	{
-		motor_m1->setSpeed(pot_motor_m1);
-		motor_m1->run(BACKWARD);
+		motor_D->setSpeed(pot_motor_D);
+		motor_D->run(BACKWARD);
 	}
 	else
 	{
-		motor_m1->run(RELEASE);
+		motor_D->run(RELEASE);
 	}
 
 	if (m2 > 0)
 	{
-		motor_m2->setSpeed(pot_motor_m2);
-		motor_m2->run(FORWARD);
+		motor_E->setSpeed(pot_motor_E);
+		motor_E->run(FORWARD);
 	}
 	else if (m2 < 0)
 	{
-		motor_m2->setSpeed(pot_motor_m2);
-		motor_m2->run(BACKWARD);
+		motor_E->setSpeed(pot_motor_E);
+		motor_E->run(BACKWARD);
 	}
 	else
 	{
-		motor_m2->run(RELEASE);
+		motor_E->run(RELEASE);
 	}
 }
 

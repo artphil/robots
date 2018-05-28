@@ -6,7 +6,8 @@ void m_inicio(int); 		// MENU - Nivel 1
 void m_iniciar(int);		// Inicia processo de movimentos
 void m_configurar(int); 	// Configurar - nivel 2
 void m_conf_movimento(int);	// Configurar - Movimento - nivel 3
-void m_conf_visao(int); 	// Configurar - Visao - nivel 2
+void m_conf_visao(int); 	// Configurar - Visao - nivel 3
+void m_conf_odometro(int); 	// Configurar - Odometro - nivel 3
 void m_informacoes(int); 	// Informacoes - nivel 2
 void m_testes(int); 		// Testes - nivel 2
 void m_pre_moves(int); 		// Pre moves - nivel 2
@@ -26,6 +27,7 @@ void menu() // Gerenciador do menu e suas opcoes
 	else if (estado_menu < 30)  m_configurar(20);
 	else if (estado_menu < 220) m_conf_movimento(210);
 	else if (estado_menu < 230) m_conf_visao(220);
+	else if (estado_menu < 240) m_conf_odometro(230);
 }
 
 int verifica_botao () // Identifica qual botao foi acionado
@@ -135,11 +137,12 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 void m_configurar(int n) // Configurar - nivel 2
 {
 	String titulo = "   CONFIGURAR   ";
-	int ns = 5;
+	int ns = 6;
 	String subtitulo[ns] = {
 		"Voltar          ",
 		"Movimento       ",
 		"Visao           ",
+		"Odometro        ",
 		"     GRAVAR     ",
 		"    LE SALVO    "
 	};
@@ -179,12 +182,12 @@ void m_configurar(int n) // Configurar - nivel 2
 		{
 			estado_menu = (estado_menu/10);
 		}
-		else if (estado_menu == n+3)
+		else if (estado_menu == n+4)
 		{
 			grava_EEPROM();
 			estado_menu = (estado_menu/10);
 		}
-		else if (estado_menu == n+4)
+		else if (estado_menu == n+5)
 		{
 			le_EEPROM();
 			estado_menu = (estado_menu/10);
@@ -197,7 +200,7 @@ void m_configurar(int n) // Configurar - nivel 2
 	}
 }
 
-void m_conf_movimento(int n) // Configurar - Visao - nivel 2
+void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 {
 	String titulo = "    MOVIMENTO   ";
 	int ns = 5;
@@ -221,8 +224,8 @@ void m_conf_movimento(int n) // Configurar - Visao - nivel 2
 	lcd.print (subtitulo[estado_menu%10]);
 	lcd.setCursor(10,1);
 
-	if (estado_menu == n+1) lcd.print (pot_motor_m1);
-	else if (estado_menu == n+2) lcd.print (pot_motor_m2);
+	if (estado_menu == n+1) lcd.print (pot_motor_D);
+	else if (estado_menu == n+2) lcd.print (pot_motor_E);
 	else if (estado_menu == n+3) lcd.print (t_anda);
 	else if (estado_menu == n+4) lcd.print (t_giro_90);
 
@@ -241,11 +244,11 @@ void m_conf_movimento(int n) // Configurar - Visao - nivel 2
 		case DIREITA:
 		if (estado_menu == n+1)
 		{
-			if (pot_motor_m1 < 255) pot_motor_m1++;
+			if (pot_motor_D < 255) pot_motor_D++;
 		}
 		else if (estado_menu == n+2)
 		{
-			if (pot_motor_m2 < 255) pot_motor_m2++;
+			if (pot_motor_E < 255) pot_motor_E++;
 		}
 		else if (estado_menu == n+3)
 		{
@@ -264,11 +267,11 @@ void m_conf_movimento(int n) // Configurar - Visao - nivel 2
 		case ESQUERDA:
 		if (estado_menu == n+1)
 		{
-			if (pot_motor_m1 > 0) pot_motor_m1--;
+			if (pot_motor_D > 0) pot_motor_D--;
 		}
 		else if (estado_menu == n+2)
 		{
-			if (pot_motor_m2 > 0) pot_motor_m2--;
+			if (pot_motor_E > 0) pot_motor_E--;
 		}
 		else if (estado_menu == n+3)
 		{
@@ -358,6 +361,83 @@ void m_conf_visao(int n) // Configurar - Visao - nivel 2
 		else if (estado_menu == n+2)
 		{
 			balanco_preto();
+			estado_menu = (estado_menu/10);
+		}
+		break;
+	}
+
+}
+
+void m_conf_odometro(int n) // Configurar - Odometro - nivel 3
+{
+	String titulo = "    ODOMETRO    ";
+	int ns = 4;
+	String subtitulo[ns] = {
+		"Voltar          ",
+		"K P    -       +",
+		"K D    -       +",
+		"Calibra motor   "
+	};
+
+	if ((millis() - t_menu) > T_MAX_MENU)
+	{
+		t_menu = millis();
+		botao = verifica_botao();
+	}
+
+	lcd.setCursor(0,0);
+	lcd.print (titulo);
+	lcd.setCursor(0,1);
+	lcd.print (subtitulo[estado_menu%10]);
+	lcd.setCursor(10,1);
+
+	if (estado_menu == n+1) lcd.print (KP);
+	else if (estado_menu == n+2) lcd.print (KD);
+
+	switch (botao)
+	{
+		case CIMA:
+		estado_menu--;
+		if (estado_menu < n) estado_menu = (n+ns)-1;
+		break;
+
+		case BAIXO:
+		estado_menu++;
+		if (estado_menu >= (n+ns)) estado_menu = n;
+		break;
+
+		case DIREITA:
+		if (estado_menu == n+1)
+		{
+			// if (KP < 255)
+			KP += 0.1;
+		}
+		else if (estado_menu == n+2)
+		{
+			// if (KD < 255)
+			KD += 0.1;
+		}
+		break;
+
+		case ESQUERDA:
+		if (estado_menu == n+1)
+		{
+			if (KP > 0) KP -= 0.1;
+		}
+		else if (estado_menu == n+2)
+		{
+			if (KD > 0) KD -= 0.1;
+		}
+		break;
+
+		case SELECIONA:
+		if (estado_menu == n)
+		{
+			estado_menu = (estado_menu/10);
+		}
+		else if (estado_menu == n+3)
+		{
+			calibra_motor();
 			estado_menu = (estado_menu/10);
 		}
 		break;

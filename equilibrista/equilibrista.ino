@@ -9,6 +9,7 @@ void setup()
 	inicia_motor();
 	inicia_sensor();
 	inicia_entradas();
+	inicia_odometro();
 }
 
 void loop()

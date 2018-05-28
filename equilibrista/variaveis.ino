@@ -24,8 +24,8 @@ void grava_EEPROM ()
 	lcd.setCursor(0,1);
 	lcd.print ("Gravando        ");
 
-	EEPROM.write(0, pot_motor_m1);
-	EEPROM.write(1, pot_motor_m2);
+	EEPROM.write(0, pot_motor_D);
+	EEPROM.write(1, pot_motor_E);
 
 	EEPROM.write(2, ldr_limiar);
 
@@ -52,8 +52,8 @@ void le_EEPROM ()
 	lcd.setCursor(0,1);
 	lcd.print ("Lendo dados     ");
 
-	pot_motor_m1 = EEPROM.read(0);
-	pot_motor_m2 = EEPROM.read(1);
+	pot_motor_D = EEPROM.read(0);
+	pot_motor_E = EEPROM.read(1);
 
 	ldr_limiar   = EEPROM.read(2);
 
@@ -91,8 +91,8 @@ void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	t_teste = 2000;
-	pot_motor_m1 = 160;
-	pot_motor_m2 = 140;
+	pot_motor_D = 160;
+	pot_motor_E = 140;
 	t_anda  	= 5000;
 	t_anda_raiz = sqrt(t_anda);
 	t_giro_90  	= 2400;
@@ -116,6 +116,14 @@ void inicia_sensor() // Inicializa as vatiaveis
 	pinMode(LED_RED_PIN,OUTPUT);
 	pinMode(LED_GRN_PIN,OUTPUT);
 	pinMode(LED_BLU_PIN,OUTPUT);
+}
+
+void inicia_odometro()
+{
+	KP = 0.3;
+	KD = 7;
+	esperado = 10;
+	ultimo_erro = 0;
 }
 
 void 	inicia_entradas()
