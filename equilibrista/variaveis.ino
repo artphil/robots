@@ -11,8 +11,15 @@ void atualiza () // Atualiza as constantes utilizadas
 	ldr_direita = analogRead(LDR_D_PIN);
 	ldr_esquerda = analogRead(LDR_E_PIN);
 
-	encdr_d_valor = encoder_E.read();
-	encdr_e_valor = encoder_D.read();
+	otico_direita = analogRead(OTICO_D_PIN);
+	otico_esquerda = analogRead(OTICO_E_PIN);
+
+
+	encdr_e_ultimo = encoder_E.read();
+	encdr_d_ultimo = encoder_D.read();
+	encdr_e_valor += encdr_e_ultimo;
+	encdr_d_valor += encdr_d_ultimo;
+	reset_encoders();
 
 	objeto = ve_objeto();
 
@@ -37,8 +44,8 @@ void grava_EEPROM ()
 	EEPROM.write(7, ldr_preto[1]/4);
 	EEPROM.write(8, ldr_preto[2]/4);
 
-	EEPROM.write(9, t_anda/100);
-	EEPROM.write(10, t_giro_90/100);
+	EEPROM.write(9, t_anda);
+	EEPROM.write(10, t_giro_90);
 
 	for (size_t i = 0; i < 4; i++) {
 		lcd.setCursor(9+i,1);
@@ -65,9 +72,9 @@ void le_EEPROM ()
 	ldr_preto[1]= EEPROM.read(7)*4;
 	ldr_preto[2]= EEPROM.read(8)*4;
 
-	t_anda  	= EEPROM.read(9)*100;
+	t_anda  	= EEPROM.read(9);
 	t_anda_raiz = sqrt(t_anda);
-	t_giro_90  	= EEPROM.read(10)*100;
+	t_giro_90  	= EEPROM.read(10);
 	t_giro_45   = t_giro_90/2;
 
 	for (size_t i = 0; i < 4; i++) {
@@ -92,9 +99,11 @@ void inicia_motor() // Inicializa as vatiaveis
 	t_teste = 2000;
 	pot_motor_D = 200;
 	pot_motor_E = 200;
-	t_anda  	= 5000;
+	t_anda  	= 100;
+	anda_cm  	= 30;
+	anda_fat  	= 7;
 	t_anda_raiz = sqrt(t_anda);
-	t_giro_90  	= 2400;
+	t_giro_90  	= 36;
 	t_giro_45   = t_giro_90/2;
 	ligado = false;
 	AFMS.begin(); // create with the default frequency 1.6KHz
@@ -112,6 +121,7 @@ void inicia_sensor() // Inicializa as vatiaveis
 	led_atual[0] = false;
 	led_atual[1] = false;
 	led_atual[2] = false;
+	otico_direcao = FRENTE;
 	pinMode(LED_RED_PIN,OUTPUT);
 	pinMode(LED_GRN_PIN,OUTPUT);
 	pinMode(LED_BLU_PIN,OUTPUT);
@@ -120,9 +130,80 @@ void inicia_sensor() // Inicializa as vatiaveis
 void inicia_odometro()
 {
 	KP = 0.3;
-	KD = 7;
+	KD = 5.0;
 	esperado = 10;
 	ultimo_erro = 0;
+	mov_giro = false;
+	mov_anterior = false;
+}
+
+
+void 	e_teste()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,   t_teste );
+	seq_mov.set( PARA, 	 t_teste );
+	seq_mov.set( TRAS,     t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.set( DIREITA,  t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.set( ESQUERDA, t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.print();
+}
+
+void 	e_vai_vem()
+{
+	seq_mov.set_tam(6);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  	t_anda );
+	seq_mov.set( ESQUERDA, 	t_giro_90 );
+	seq_mov.set( ESQUERDA, 	t_giro_90 );
+	seq_mov.set( FRENTE,  	t_anda );
+	seq_mov.set( DIREITA, 	t_giro_90 );
+	seq_mov.set( DIREITA, 	t_giro_90 );
+	seq_mov.print();
+}
+
+void 	e_triangulo()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( DIREITA, t_giro_45 );
+	seq_mov.set( FRENTE,  t_anda_raiz);
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( DIREITA, t_giro_45 );
+	seq_mov.print();
+}
+
+void 	e_quadrado()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.print();
+}
+
+void 	e_giro90()
+{
+	seq_mov.set_tam(3);
+	seq_mov.reset();
+	seq_mov.set( DIREITA,  t_giro_90 );
+	seq_mov.set( PARA,     t_giro_90 );
+	seq_mov.set( ESQUERDA, t_giro_90 );
+	seq_mov.print();
 }
 
 void 	inicia_entradas()

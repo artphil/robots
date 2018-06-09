@@ -250,3 +250,26 @@ int diferenca_ldr()
 	}
 	return abs(ldr_esquerda-ldr_direita);
 }
+
+int diferenca_otico()
+{
+	Serial.print("Difernça otc =");
+	Serial.println(abs(otico_esquerda-otico_direita));
+	Serial.print("Direção =");
+	if (otico_esquerda>otico_direita)
+	{
+		otico_direcao = ESQUERDA;
+		Serial.println("Esquerda");
+	}
+	else if (otico_esquerda<otico_direita)
+	{
+		otico_direcao = DIREITA;
+		Serial.println("Direita");
+	}
+	else
+	{
+		otico_direcao = FRENTE;
+		Serial.println("Centro");
+	}
+	return abs(otico_esquerda-otico_direita);
+}

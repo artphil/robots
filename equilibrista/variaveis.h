@@ -37,11 +37,14 @@ bool	ligado;			// Informa se o robo esta funcionando;
 int 	t_giro_45;
 int 	t_giro_90;
 int 	t_anda;
+int 	anda_cm;
+int 	anda_fat;
 int 	t_anda_raiz;
 int 	t_teste;
 int 	t_anda_re;
 
 // Sequencias de movimentos
+entrada seq_mov;
 entrada teste;
 entrada vai_vem;
 entrada triangulo;
@@ -56,6 +59,9 @@ int 	cor;			// Cor encontrada
 int 	ldr_valor;		// Intencidade de luz captada
 int 	ldr_direita;	// Intencidade de luz captada no ldr direito
 int 	ldr_esquerda;	// Intencidade de luz captada no ldr esquerdo
+int 	otico_direita;	// Intencidade de luz captada no otico direito
+int 	otico_esquerda;	// Intencidade de luz captada no otico esquerdo
+int 	otico_direcao;	// Direcao da maior intencidade de luz
 int 	ldr_direcao;	// Direcao da maior intencidade de luz
 int 	ldr_dif_max;	// Direcao da maior intencidade de luz
 int 	ldr_limiar;		// Valor limite para ver objeto
@@ -74,16 +80,21 @@ String	nome_cor[] =
 	"Branco",
 	"Preto"
 };						// Nome das cores
+int dir_atual=DIREITA;
+int dir_ultima;
 
 // odometria
-int encdr_d_valor;
+bool mov_giro;
+bool mov_anterior;
 int encdr_e_valor;
+int encdr_d_valor;
+int encdr_e_ultimo;
+int encdr_d_ultimo;
 int esperado;
 int ultimo_erro;
 float KP;
 float KD;
-
-
+conta_tempo t_pd(50);
 // Atualiza as constantes utilizadas
 void 	atualiza ();
 // Inicializa as vatiaveis
@@ -103,3 +114,10 @@ t_giro_90
 */
 void 	grava_EEPROM ();
 void 	le_EEPROM ();
+
+// Entradas
+void 	e_teste();
+void 	e_vai_vem();
+void 	e_triangulo();
+void 	e_quadrado();
+void 	e_giro90();

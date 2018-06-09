@@ -4,6 +4,10 @@
 
 void aciona_motor (int m1, int m2)
 {
+	// Se os motores estao em direções diferentes o movimento
+	// e um giro
+	mov_giro = (m1 == m2)? false : true;
+
 	if (m1 > 0)
 	{
 		motor_D->setSpeed(pot_motor_D);
@@ -37,12 +41,13 @@ void aciona_motor (int m1, int m2)
 
 int anda(int direcao, int tmp_acao)
 {
-	Serial.print("Direcao: ");
-	Serial.println(direcao);
-	Serial.print("Tempo: ");
-	Serial.println(tmp_acao);
+	// Serial.print("Direcao: ");
+	// Serial.println(direcao);
+	// Serial.print("Tempo: ");
+	// Serial.println(tmp_acao);
 
-	int tmp_aux = millis()-t_motor;
+
+	int tmp_aux = (abs(encdr_e_valor)+abs(encdr_d_valor))/2;
 
 	if (tmp_aux < tmp_acao)
 	{
@@ -68,14 +73,11 @@ int anda(int direcao, int tmp_acao)
 			aciona_motor(-1,1);
 			lcd.print ("ESQUERDA        ");
 		}
-		else if (direcao == PARA)
-		{
-			aciona_motor(0,0);
-			lcd.print ("PARA            ");
-		}
 		else
 		{
+			reset_encoders();
 			aciona_motor(0,0);
+			return 1;
 		}
 
 		lcd.setCursor(12,1);
@@ -83,6 +85,7 @@ int anda(int direcao, int tmp_acao)
 	}
 	else
 	{
+		reset_encoders();
 		aciona_motor(0,0);
 		return 1;
 	}
@@ -104,8 +107,8 @@ int move(entrada a)
 		estado_motor += 1;
 		t_motor = millis();
 	}
-	Serial.print("Estado: ");
-	Serial.println(estado_motor);
+	// Serial.print("Estado: ");
+	// Serial.println(estado_motor);
 
 	return 0;
 }
@@ -203,7 +206,7 @@ int busca_luz(int n)
 	int luz = diferenca_ldr();
 	if (n == 0)
 	{
-		n += anda(ESQUERDA,4*t_giro_90);
+		n += anda(ESQUERDA,4*t_giro_90); 		// gira 360 graus
 		ldr_dif_max = (ldr_dif_max>luz) ? ldr_dif_max : luz;
 	}
 	else if (n == 1)
@@ -213,13 +216,29 @@ int busca_luz(int n)
 	}
 	else if (n == 2)
 	{
-		anda(DIREITA,4*t_giro_90);
+		anda(DIREITA,4*t_giro_90);		// gira ate encontra maior luz
 		if (ldr_dif_max < luz) {
 			aciona_motor(0,0);
 			return 1;
 		}
 	}
 	return 0;
+}
+
+int linha()
+{
+	if (verifica_botao() == SELECIONA)
+	{
+		aciona_motor(0,0);
+		return 1;
+	}
+
+	if (ldr_valor < 200)
+	{
+		otico_direcao = (otico_direcao == DIREITA)? ESQUERDA : DIREITA;
+	}
+
+
 }
 
 int movimentos ()
@@ -231,30 +250,30 @@ int movimentos ()
 	}
 	else if (mov == 2)
 	{
-		if (move(teste) == 1) 		ligado = false;
+		if (move(seq_mov) == 1) 		ligado = false;
 	}
 	else if (mov == 3)
 	{
-		if (move(vai_vem) == 1) 	ligado = false;
+		if (move(seq_mov) == 1) 	ligado = false;
 	}
 	else if (mov == 4)
 	{
-		if (move(triangulo) == 1) 	ligado = false;
+		if (move(seq_mov) == 1) 	ligado = false;
 	}
 	else if (mov == 5)
 	{
-		if (move(quadrado) == 1) 	ligado = false;
+		if (move(seq_mov) == 1) 	ligado = false;
 	}
 	else if (mov == 6)
 	{
-		if (move(giro45) == 1) 		ligado = false;
+		if (move(seq_mov) == 1) 		ligado = false;
 	}
 	else if (mov == 7)
 	{
-		if (move(giro90) == 1) 		ligado = false;
+		if (busca_luz(0) == 1) 		ligado = false;
 	}
 	else if (mov == 8)
 	{
-		if (busca_luz(0) == 1) 		ligado = false;
+		if (linha() == 1) 		ligado = false;
 	}
 }

@@ -111,13 +111,22 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		estado_liga += 1;
 	}
 
-	if (estado_liga < 4)
+	if (estado_liga == 0)
+	{
+		if (mov == 2) e_teste();
+		else if (mov == 3) e_vai_vem();
+		else if (mov == 4) e_triangulo();
+		else if (mov == 5) e_quadrado();
+		else if (mov == 6) e_giro90();
+		estado_liga = 1;
+	}
+	else if (estado_liga < 5)
 	{
 		lcd.print ("Iniciando em    ");
 		lcd.setCursor(13,1);
-		lcd.print (3 - estado_liga);
+		lcd.print (4 - estado_liga);
 	}
-	else if (estado_liga < 5)
+	else if (estado_liga < 6)
 	{
 		if (!ligado)
 		{
@@ -203,13 +212,14 @@ void m_configurar(int n) // Configurar - nivel 2
 void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 {
 	String titulo = "    MOVIMENTO   ";
-	int ns = 5;
+	int ns = 6;
 	String subtitulo[ns] = {
 		"Voltar          ",
 		"pot ME -       +",
 		"pot MD -       +",
-		"anda   -      s+",
-		"giro90 -      s+"
+		"anda   -     cm+",
+		"f anda -       +",
+		"giro90 -       +"
 	};
 
 	if (t_menu.fim())
@@ -226,8 +236,9 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 
 	if (estado_menu == n+1) lcd.print (pot_motor_D);
 	else if (estado_menu == n+2) lcd.print (pot_motor_E);
-	else if (estado_menu == n+3) lcd.print (t_anda);
-	else if (estado_menu == n+4) lcd.print (t_giro_90);
+	else if (estado_menu == n+3) lcd.print (anda_cm);
+	else if (estado_menu == n+4) lcd.print (anda_fat);
+	else if (estado_menu == n+5) lcd.print (t_giro_90);
 
 	switch (botao)
 	{
@@ -252,13 +263,18 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 		}
 		else if (estado_menu == n+3)
 		{
-			if (t_anda < 25500) t_anda+=100;
+			if (anda_cm < 255) anda_cm++;
+			t_anda = anda_cm * anda_fat;
 		}
 		else if (estado_menu == n+4)
 		{
-			if (t_giro_90 < 25500)
+			if (anda_fat < 255) anda_fat++;
+		}
+		else if (estado_menu == n+5)
+		{
+			if (t_giro_90 < 255)
 			{
-				t_giro_90+=100;
+				t_giro_90++;
 				t_giro_45 = t_giro_90/2;
 			}
 		}
@@ -275,13 +291,18 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 		}
 		else if (estado_menu == n+3)
 		{
-			if (t_anda > 0) t_anda-=100;
+			if (anda_cm < 255) anda_cm--;
+			t_anda = anda_cm * anda_fat;
 		}
 		else if (estado_menu == n+4)
 		{
+			if (anda_fat < 255) anda_fat--;
+		}
+		else if (estado_menu == n+5)
+		{
 			if (t_giro_90 > 0)
 			{
-				t_giro_90-=100;
+				t_giro_90--;
 				t_giro_45 = t_giro_90/2;
 			}
 		}
@@ -719,9 +740,9 @@ void m_pre_moves(int n) // Pre moves - nivel 2
 		"Vai Vem         ",
 		"Triangulo       ",
 		"Quadrado        ",
-		"Giro 45         ",
 		"Giro 90         ",
 		"Busca Luz       ",
+		"Linha           "
 	};
 
 	if (t_menu.fim())

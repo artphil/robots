@@ -2,6 +2,7 @@
 
 /* classes */
 
+// Entrada
 void entrada::set_tam(int n)
 { tam = n; }
 
@@ -11,12 +12,12 @@ int entrada::get_tam()
 void entrada::reset()
 { i = 0; }
 
-void entrada::set(int n, int *m)
+void entrada::set(int d, int t)
 {
 	if (i < 50)
 	{
-		direcao[i] = n;
-		tempo[i] = m;
+		direcao[i] = d;
+		tempo[i] = t;
 		i++;
 	}
 }
@@ -30,7 +31,7 @@ int entrada::get_dir(int n)
 int entrada::get_tmp(int n)
 {
 	if (n >= tam) return -1;
-	return *tempo[n];
+	return tempo[n];
 }
 
 void entrada::print()
@@ -39,12 +40,13 @@ void entrada::print()
 		Serial.print("( ");
 		Serial.print(direcao[i]);
 		Serial.print(" , ");
-		Serial.print(*tempo[i]);
+		Serial.print(tempo[i]);
 		Serial.println(" )");
 	}
 	Serial.println();
 }
 
+// Conta Tempo
 conta_tempo::conta_tempo(int max)
 {
 	t_max = max;
@@ -53,7 +55,7 @@ conta_tempo::conta_tempo(int max)
 
 bool conta_tempo::fim()
 {
-	return (get_tempo() > t_max) ? true : false;
+	return (get_tempo() > t_max);
 }
 
 void conta_tempo::reset()

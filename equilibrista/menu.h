@@ -37,7 +37,6 @@ SUMARIO do MENU
 --|- Vai Vem
 --|- Triangulo
 --|- Quadrado
---|- Giro 45
 --|- Giro 90
 --|- Busca Luz (Aponta para a direcao com maior intencidade de luz)
 - Creditos
