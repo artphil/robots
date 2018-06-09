@@ -55,7 +55,7 @@ conta_tempo::conta_tempo(int max)
 
 bool conta_tempo::fim()
 {
-	return (get_tempo() > t_max);
+	return (get_milis() > t_max);
 }
 
 void conta_tempo::reset()
@@ -63,15 +63,25 @@ void conta_tempo::reset()
 	tmp = millis();
 }
 
-int conta_tempo::get_tempo()
+void conta_tempo::set_max(long t)
+{
+	t_max = t;
+}
+
+int conta_tempo::get_milis()
 {
 	return (int)(millis()-tmp);
+}
+
+int conta_tempo::get_seg()
+{
+	return (int)((millis()-tmp)/1000);
 }
 
 void conta_tempo::print()
 {
 	Serial.print("tempo = ");
-	Serial.print(get_tempo()/1000.0);
+	Serial.print(get_milis()/1000.0);
 	Serial.println(" s");
 	Serial.print("tempo max = ");
 	Serial.print(t_max/1000.0);

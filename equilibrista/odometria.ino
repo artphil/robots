@@ -1,5 +1,15 @@
 /* implementação das funcoes */
 
+void inicia_odometro()
+{
+	KP = 0.3;
+	KD = 5.0;
+	esperado = 10;
+	ultimo_erro = 0;
+	mov_giro = false;
+	mov_anterior = false;
+}
+
 void reset_encoders()
 {
 	encoder_D.write(0);

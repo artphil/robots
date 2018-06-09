@@ -2,6 +2,22 @@
 
 /* implementação das funcoes */
 
+void inicia_motor() // Inicializa as vatiaveis
+{
+	// Parametros iniciais
+	t_teste 	= 2000;
+	pot_motor_D = 200;
+	pot_motor_E = 200;
+	anda_cm  	= 30;
+	anda_fat  	= 1670;
+	t_anda  	= 5000;
+	t_anda_raiz = sqrt(t_anda);
+	t_giro_90  	= 2400;
+	t_giro_45   = t_giro_90/2;
+	ligado = false;
+	AFMS.begin(); // create with the default frequency 1.6KHz
+}
+
 void aciona_motor (int m1, int m2)
 {
 	// Se os motores estao em direções diferentes o movimento
@@ -46,10 +62,9 @@ int anda(int direcao, int tmp_acao)
 	// Serial.print("Tempo: ");
 	// Serial.println(tmp_acao);
 
+	t_motor.set_max(tmp_acao);
 
-	int tmp_aux = (abs(encdr_e_valor)+abs(encdr_d_valor))/2;
-
-	if (tmp_aux < tmp_acao)
+	if (t_motor.get_milis() < tmp_acao)
 	{
 		lcd.setCursor(0,1);
 
@@ -73,19 +88,23 @@ int anda(int direcao, int tmp_acao)
 			aciona_motor(-1,1);
 			lcd.print ("ESQUERDA        ");
 		}
+		else  if (direcao == PARA)
+		{
+			aciona_motor(0,0);
+			lcd.print ("PARA           ");
+			return 1;
+		}
 		else
 		{
-			reset_encoders();
 			aciona_motor(0,0);
 			return 1;
 		}
 
 		lcd.setCursor(12,1);
-		lcd.print (tmp_aux / 1000);
+		lcd.print (t_motor.get_seg());
 	}
 	else
 	{
-		reset_encoders();
 		aciona_motor(0,0);
 		return 1;
 	}
@@ -105,7 +124,7 @@ int move(entrada a)
 	if (anda(a.get_dir(estado_motor), a.get_tmp(estado_motor)) == 1)
 	{
 		estado_motor += 1;
-		t_motor = millis();
+		t_motor.reset();
 	}
 	// Serial.print("Estado: ");
 	// Serial.println(estado_motor);
@@ -131,22 +150,22 @@ int move_auto()
 		if (cor == RED)
 		{
 			estado_motor = 2;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == GREEN)
 		{
 			estado_motor = 3;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == BLUE)
 		{
 			estado_motor = 4;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == YELLOW)
 		{
 			estado_motor = 5;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == BLACK)
 		{
@@ -160,42 +179,42 @@ int move_auto()
 
 		case 2:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		return 1;
 		break;
 
 		case 3:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 
 		case 4:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 
 		case 5:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 	}
 	return 0;
@@ -233,7 +252,7 @@ int linha()
 		return 1;
 	}
 
-	if (ldr_valor < 200)
+	if (ldr_valor > 200)
 	{
 		otico_direcao = (otico_direcao == DIREITA)? ESQUERDA : DIREITA;
 	}
@@ -276,4 +295,72 @@ int movimentos ()
 	{
 		if (linha() == 1) 		ligado = false;
 	}
+}
+
+void 	e_teste()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,   t_teste );
+	seq_mov.set( PARA, 	 t_teste );
+	seq_mov.set( TRAS,     t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.set( DIREITA,  t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.set( ESQUERDA, t_teste );
+	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.print();
+}
+
+void 	e_vai_vem()
+{
+	seq_mov.set_tam(6);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  	t_anda );
+	seq_mov.set( ESQUERDA, 	t_giro_90 );
+	seq_mov.set( ESQUERDA, 	t_giro_90 );
+	seq_mov.set( FRENTE,  	t_anda );
+	seq_mov.set( DIREITA, 	t_giro_90 );
+	seq_mov.set( DIREITA, 	t_giro_90 );
+	seq_mov.print();
+}
+
+void 	e_triangulo()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( DIREITA, t_giro_45 );
+	seq_mov.set( FRENTE,  t_anda_raiz);
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( DIREITA, t_giro_45 );
+	seq_mov.print();
+}
+
+void 	e_quadrado()
+{
+	seq_mov.set_tam(8);
+	seq_mov.reset();
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.set( FRENTE,  t_anda );
+	seq_mov.set( DIREITA, t_giro_90 );
+	seq_mov.print();
+}
+
+void 	e_giro90()
+{
+	seq_mov.set_tam(3);
+	seq_mov.reset();
+	seq_mov.set( DIREITA,  t_giro_90 );
+	seq_mov.set( PARA,     t_giro_90 );
+	seq_mov.set( ESQUERDA, t_giro_90 );
+	seq_mov.print();
 }

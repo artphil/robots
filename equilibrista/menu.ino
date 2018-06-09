@@ -1,7 +1,6 @@
 #include "ambiente.h"
 
 /* funcoes */
-int verifica_botao (); 		// Identifica qual botao foi acionado
 void m_iniciar(int);		// Inicia processo de movimentos
 void m_inicio(int); 		// MENU 		- nivel 1
 void m_configurar(int); 	// Configurar 	- nivel 2
@@ -14,6 +13,14 @@ void m_pre_moves(int); 		// Pre moves 	- nivel 2
 void m_creditos(int);	 	// Creditos 	- nivel 2
 
 /* implementação das funcoes */
+
+void inicia_menu() // Inicializa as vatiaveis
+{
+	// Parametros iniciais
+	estado_menu = 0;
+	estado_menu = 0;
+	lcd.begin(16, 2);
+}
 
 void menu() // Gerenciador do menu e suas opcoes
 {
@@ -132,7 +139,7 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		{
 			ligado 	= true;
 			estado_motor = 0;
-			t_motor = millis();
+			t_motor.reset();
 			estado_liga += 1;
 		}
 		else
@@ -268,13 +275,13 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 		}
 		else if (estado_menu == n+4)
 		{
-			if (anda_fat < 255) anda_fat++;
+			if (anda_fat < 2550) anda_fat+=10;
 		}
 		else if (estado_menu == n+5)
 		{
-			if (t_giro_90 < 255)
+			if (t_giro_90 < 2550)
 			{
-				t_giro_90++;
+				t_giro_90+=10;
 				t_giro_45 = t_giro_90/2;
 			}
 		}
@@ -296,13 +303,13 @@ void m_conf_movimento(int n) // Configurar - Movimento - nivel 3
 		}
 		else if (estado_menu == n+4)
 		{
-			if (anda_fat < 255) anda_fat--;
+			if (anda_fat < 2550) anda_fat-=10;
 		}
 		else if (estado_menu == n+5)
 		{
 			if (t_giro_90 > 0)
 			{
-				t_giro_90--;
+				t_giro_90-=10;
 				t_giro_45 = t_giro_90/2;
 			}
 		}

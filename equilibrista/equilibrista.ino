@@ -46,23 +46,29 @@ void loop()
 		Serial.println(ldr_valor);
 		Serial.println();
 	}
+}
 
 
-	while (true)
-	{
-		a = (analogRead(LDR_PIN) < 200);
+void atualiza () // Atualiza as constantes utilizadas
+{
+	int sensorValue = analogRead(A0);
+	carga = sensorValue * (5.0 / 1023.0);
 
-		if (a){
-			aciona_motor(1,1);
-		}
-		else
-		{
-			if (lado)
-			aciona_motor(0,1);
-			else
-			aciona_motor(1,0);
+	ldr_valor = analogRead(LDR_PIN);
+	ldr_direita = analogRead(LDR_D_PIN);
+	ldr_esquerda = analogRead(LDR_E_PIN);
 
-		}
+	otico_direita = analogRead(OTICO_D_PIN);
+	otico_esquerda = analogRead(OTICO_E_PIN);
 
-	}
+
+	encdr_e_ultimo = encoder_E.read();
+	encdr_d_ultimo = encoder_D.read();
+	encdr_e_valor += encdr_e_ultimo;
+	encdr_d_valor += encdr_d_ultimo;
+	reset_encoders();
+
+	objeto = ve_objeto();
+
+	botao = 0;
 }

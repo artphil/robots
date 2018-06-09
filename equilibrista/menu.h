@@ -43,10 +43,26 @@ SUMARIO do MENU
 --|- Arthur P Silva
 --|- Bernardo Sanches
 --|- Gustavo Campos
+// Variaveis
 --|- Matheus Santos
 --------------------------------------------*/
 
-//  Funcoes
+// Objeto Display
+LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
-// Gerenciador do menu e suas opcoes
-void 	menu();
+int 	botao;			// Botao pressionado no momento
+int 	tst;			// intica qual teste esta sendo realizado
+int 	estado_menu;	// Posicao na pilha do menu
+int 	estado_antigo;	// Posicao anterior na pilha do menu
+int 	estado_liga;	// Posicao na pilha do menu 11
+conta_tempo t_menu(180); 	// Contador de tempo do menu
+conta_tempo t_liga(1000);	// Contador de tempo do menu 11
+// Interacao do menu CREDITOS
+int letra = 0;
+bool desliza = true;
+conta_tempo t_nome(400);	// Contador de tempo do menu 11
+
+//  Funcoes
+void 	menu();				// Gerenciador do menu e suas opcoes
+int 	verifica_botao (); 	// Identifica qual botao foi acionado
+void 	inicia_menu();

@@ -2,6 +2,24 @@
 
 /* implementação das funcoes */
 
+void inicia_sensor() // Inicializa as vatiaveis
+{
+	// Parametros iniciais
+	ldr_limiar   = 170;
+	ldr_cor[RED]	= 0.0;
+	ldr_cor[GREEN]  = 0.0;
+	ldr_cor[BLUE]	= 0.0;
+	led = 0;
+	cor = WHITE;
+	led_atual[0] = false;
+	led_atual[1] = false;
+	led_atual[2] = false;
+	otico_direcao = FRENTE;
+	pinMode(LED_RED_PIN,OUTPUT);
+	pinMode(LED_GRN_PIN,OUTPUT);
+	pinMode(LED_BLU_PIN,OUTPUT);
+}
+
 int aciona_luz(bool r, bool g, bool b)
 {
 	if (led_atual[0] == r)

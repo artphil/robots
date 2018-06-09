@@ -12,7 +12,7 @@
 #include "menu.h"
 #include "movimento.h"
 #include "visao.h"
-#include "variaveis.h"
+#include "dados.h"
 #include "odometria.h"
 
 using namespace std;
@@ -43,16 +43,24 @@ using namespace std;
 #define BLACK 		5
 
 // Identificacao dos pinos utilizados
+#define MOTOR_E_PIN 	1
+#define MOTOR_D_PIN 	3
+
 #define LED_RED_PIN 	23
 #define LED_GRN_PIN	 	25
 #define LED_BLU_PIN 	27
+
 #define OTICO_E_PIN		8
 #define OTICO_D_PIN		9
+
 #define LDR_PIN 		10
+
 #define LDR_E_PIN 		11
 #define LDR_D_PIN 		15
+
 #define ENCDR_E1_PIN	47
 #define ENCDR_E2_PIN	49
+
 #define ENCDR_D1_PIN	51
 #define ENCDR_D2_PIN	53
 

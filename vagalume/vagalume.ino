@@ -472,7 +472,7 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 		{
 			ligado 	= true;
 			estado_motor = 0;
-			t_motor = millis();
+			t_motor.reset();
 			estado_liga += 1;
 		}
 		else
@@ -1375,7 +1375,7 @@ int move(entrada a)
 	if (anda(a.get_dir(estado_motor), a.get_tmp(estado_motor)) == 1)
 	{
 		estado_motor += 1;
-		t_motor = millis();
+		t_motor.reset();
 	}
 	Serial.print("Estado: ");
 	Serial.println(estado_motor);
@@ -1401,22 +1401,22 @@ int move_auto()
 		if (cor == RED)
 		{
 			estado_motor = 2;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == GREEN)
 		{
 			estado_motor = 3;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == BLUE)
 		{
 			estado_motor = 4;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == YELLOW)
 		{
 			estado_motor = 5;
-			t_motor = millis();
+			t_motor.reset();
 		}
 		if (cor == BLACK)
 		{
@@ -1430,39 +1430,39 @@ int move_auto()
 
 		case 2:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 			// if (estado_move==0 && anda(TRAS,t_anda_re)==1)
 		// {
 		// 	estado_move+=1;
-		// 	t_motor = millis();
+		// 	t_motor.reset();
 		// }
 		// else if (estado_move==1 && anda(DIREITA,t_giro_90)==1)
 		// {
 		// 	estado_move+=1;
-		// 	t_motor = millis();
+		// 	t_motor.reset();
 		// }
 		// else if (estado_move==2 && anda(DIREITA,t_giro_90)==1)
 		// {
 		// 	estado_move+=1;
-		// 	t_motor = millis();
+		// 	t_motor.reset();
 		// }
 		// else if (estado_move==3 && anda(DIREITA,t_giro_90)==1)
 		// {
 		// 	estado_move+=1;
-		// 	t_motor = millis();
+		// 	t_motor.reset();
 		// }
 		// else if (estado_move==4 && anda(DIREITA,t_giro_90)==1)
 		// {
 		// 	estado_move+=1;
-		// 	t_motor = millis();
+		// 	t_motor.reset();
 		// }
 		// else if (estado_move==5)
 		return 1;
@@ -1470,28 +1470,28 @@ int move_auto()
 
 		case 3:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 
 		case 4:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 
 		case 5:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
-		t_motor = millis();
+		t_motor.reset();
 		while (anda(ESQUERDA,t_giro_90) != 1); 	// gira 90 graus
 		estado_motor = 0;
-		t_motor = millis();
+		t_motor.reset();
 		break;
 	}
 	return 0;

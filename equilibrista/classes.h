@@ -24,6 +24,8 @@ public:
 	conta_tempo(int max);
 	bool fim();
 	void reset();
-	int get_tempo();
+	void set_max(long);
+	int get_milis();
+	int get_seg();
 	void print();
 };
