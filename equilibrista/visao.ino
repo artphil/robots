@@ -50,7 +50,7 @@ int media_sensor(int n)
 	int total = 0;
 	for (int i = 0;i < n;i++)
 	{
-		delay(200);
+		delay(100);
 		total += analogRead(LDR_PIN);
 	}
 	return total/n;
@@ -86,7 +86,7 @@ void ve_cor()
 	aciona_luz(false, false, false);
 
 	lcd.setCursor(13,1);	lcd.print (".");
-	delay(200);
+	// delay(200);
 
 
 	cinza = ldr_branco[RED]-ldr_preto[RED];
@@ -172,7 +172,7 @@ void ve_cor()
 	lcd.print (nome_cor[cor]);
 	Serial.println(nome_cor[cor]);
 
-	delay(1000);
+	// delay(1000);
 }
 
 void balanco_branco()
@@ -254,12 +254,12 @@ int diferenca_ldr()
 	Serial.println(ldr_difer);
 	Serial.print("Direção =");
 
-	if (ldr_difer < 400)
+	if (ldr_difer < 500)
 	{
 		ldr_direcao = ESQUERDA;
 		Serial.println("Esquerda");
 	}
-	else if (ldr_difer > 800)
+	else if (ldr_difer > 700)
 	{
 		ldr_direcao = DIREITA;
 		Serial.println("Direita");
@@ -291,14 +291,18 @@ int diferenca_otico()
 	}
 	else if (otico_esquerda == 0)
 	{
+		otico_direcao = FRENTE;
 		otico_cor = WHITE;
 		Serial.println("Frente");
+		return WHITE;
 	}
 	else
 	{
+		otico_direcao = FRENTE;
 		otico_cor = BLACK;
 		Serial.println("Frente");
+		return BLACK;
 	}
 
-
+	return 0;
 }

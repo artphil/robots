@@ -6,11 +6,11 @@ void inicia_motor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	t_teste 	= 2000;
-	pot_motor_D = 200;
-	pot_motor_E = 200;
+	pot_motor_D = 150;
+	pot_motor_E = 150;
 	anda_cm  	= 30;
 	anda_fat  	= 1670;
-	t_anda  	= 5000;
+	t_anda  	= anda_cm*anda_fat; // 50100
 	t_anda_raiz = sqrt(t_anda);
 	t_giro_90  	= 2400;
 	t_giro_45   = t_giro_90/2;
@@ -111,6 +111,40 @@ int anda(int direcao, int tmp_acao)
 	return 0;
 }
 
+int anda(int direcao)
+{
+	// Serial.print("Direcao: ");
+	// Serial.println(direcao);
+
+
+	if (direcao == FRENTE)
+	{
+		aciona_motor(1,1);
+	}
+	else if (direcao == TRAS)
+	{
+		aciona_motor(-1,-1);
+	}
+	else if (direcao == DIREITA)
+	{
+		aciona_motor(1,-1);
+	}
+	else if (direcao == ESQUERDA)
+	{
+		aciona_motor(-1,1);
+	}
+	else  if (direcao == PARA)
+	{
+		aciona_motor(0,0);
+	}
+	else
+	{
+		aciona_motor(0,0);
+	}
+
+	return (t_motor.get_seg());
+}
+
 int move(entrada a)
 {
 	if (estado_motor >= a.get_tam())
@@ -134,6 +168,7 @@ int move(entrada a)
 
 int move_auto()
 {
+	int dir_rand;
 	if (estado_motor > 1 && t_partida.fim())
 	{
 		return 1;
@@ -146,7 +181,6 @@ int move_auto()
 		if (analogRead(LDR_S_PIN) < 100)
 		{
 			estado_motor = 1;
-			t_motor.reset();
 			t_partida.reset();
 			luz = 0;
 		}
@@ -155,49 +189,57 @@ int move_auto()
 		case 1: // Procura Posicao inicial
 		if (busca_luz(luz) == 1)
 		{
-			while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+			dir_rand = i_rand(1,2);
+			t_motor.reset();
+			while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
 			estado_motor = 2;
 		}
 		break;
 
-		case 2: // Analiza cor do objeto
+		case 2: // Anda sobre a linha
+		linha();
+		if (otico_cor != otico_cor_ultima)
+		{
+			otico_cor_ultima = otico_cor;
 
-		estado_motor = 3;
+			if (otico_cor == WHITE)
+			{
+				dir_rand = i_rand(1,2);
+				t_motor.reset();
+				while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
+				t_motor.reset();
+				while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
+			}
+		}
+		// estado_motor = 3;
 		break;
-/*
-		case 1: // Analiza cor do objeto
-		if (anda(PARA,T_MAX_ANDAR) == 1) return 1; 	// Acaba o tempo
+
+		case 3: // Analiza cor do objeto
+		anda(PARA);
 		ve_cor();
-		if (cor == RED)
-		{
-			estado_motor = 2;
-			t_motor.reset();
-		}
-		if (cor == GREEN)
-		{
-			estado_motor = 3;
-			t_motor.reset();
-		}
-		if (cor == BLUE)
-		{
-			estado_motor = 4;
-			t_motor.reset();
-		}
-		if (cor == YELLOW)
-		{
-			estado_motor = 5;
-			t_motor.reset();
-		}
 		if (cor == BLACK)
 		{
-			estado_motor = 1;
+			dir_rand = i_rand(1,2);
+			t_motor.reset();
+			while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
+			t_motor.reset();
+			while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
 		}
-		if (cor == WHITE)
+		else if (cor == WHITE)
 		{
-			estado_motor = 1;
+			dir_rand = i_rand(1,2);
+			t_motor.reset();
+			while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
 		}
+		else
+		{
+			t_motor.reset();
+			while (busca_luz(luz) != 1);
+			// while ();
+		}
+		estado_motor = 2;
 		break;
-
+		/*
 		case 2:
 		while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
 		t_motor.reset();
@@ -257,9 +299,9 @@ int busca_luz(int n)
 	}
 	else if (n == 2)
 	{
-		anda(DIREITA,4*t_giro_90);		// gira ate encontra maior luz
+		anda(DIREITA);		// gira ate encontra maior luz
 		if (ldr_dif_max < luzeiro) {
-			aciona_motor(0,0);
+			anda(PARA);		// gira ate encontra maior luz
 			return 1;
 		}
 	}

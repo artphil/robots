@@ -25,8 +25,8 @@ using namespace std;
 #define NOME_ROBO 	" MEGAZORD  v2.1 "
 
 // Direcoes para fins diversos
-#define DIREITA 	1
-#define ESQUERDA 	2
+#define ESQUERDA 	1
+#define DIREITA 	2
 #define CIMA 		3
 #define BAIXO 		4
 #define SELECIONA 	5
@@ -68,3 +68,6 @@ using namespace std;
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
 #define T_MAX_ANDAR		60000
+
+// funcoes
+#define i_rand(a,b)		a+(rand()%(b-a+1))

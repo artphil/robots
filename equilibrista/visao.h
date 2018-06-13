@@ -30,12 +30,10 @@ int 	luz;
 int 	otico_direita;	// Intencidade de luz captada no otico direito
 int 	otico_esquerda;	// Intencidade de luz captada no otico esquerdo
 int 	otico_direcao;	// Direcao da maior intencidade de luz
-int 	otico_cor;	// Direcao da maior intencidade de luz
+int 	otico_cor;		// Cor Identificada
+int 	otico_cor_ultima;// Ultima cor Identificada
 
 float 	carga;			// Tensão real da fonte
-
-int dir_atual=DIREITA;
-int dir_ultima;
 
 // Funcoes
 void 	inicia_sensor();

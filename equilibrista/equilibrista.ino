@@ -4,6 +4,7 @@ void setup()
 {
 	Serial.begin(9600);
 
+	srand(millis());
 	// le_EEPROM ();
 	inicia_menu();
 	inicia_motor();
@@ -26,6 +27,7 @@ void loop()
 	if (t.fim())
 	{
 		// t.print();
+		// (i_rand(3,7));//
 		t.reset();
 		Serial.print("otico D = ");
 		Serial.println(otico_direita);
