@@ -22,6 +22,7 @@ int 	t_teste;
 int 	t_anda_re;
 
 conta_tempo t_motor(1000);
+conta_tempo t_partida(T_MAX_ANDAR);
 
 entrada seq_mov;
 

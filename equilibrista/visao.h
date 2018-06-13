@@ -20,14 +20,17 @@ int 	ldr_valor;		// Intencidade de luz captada
 int 	ldr_limiar;		// Valor limite para ver objeto
 bool	objeto;			// Informa se tem algo na frente do robo
 
-int 	ldr_direita;	// Intencidade de luz captada no ldr direito
-int 	ldr_esquerda;	// Intencidade de luz captada no ldr esquerdo
+int 	ldr_start;		// Intencidade de luz captada
+
+int 	ldr_difer;	// Intencidade de luz captada no ldr direito
 int 	ldr_direcao;	// Direcao da maior intencidade de luz
 int 	ldr_dif_max;	// Direcao da maior intencidade de luz
+int 	luz;
 
 int 	otico_direita;	// Intencidade de luz captada no otico direito
 int 	otico_esquerda;	// Intencidade de luz captada no otico esquerdo
 int 	otico_direcao;	// Direcao da maior intencidade de luz
+int 	otico_cor;	// Direcao da maior intencidade de luz
 
 float 	carga;			// Tensão real da fonte
 

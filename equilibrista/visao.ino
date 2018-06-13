@@ -18,6 +18,8 @@ void inicia_sensor() // Inicializa as vatiaveis
 	pinMode(LED_RED_PIN,OUTPUT);
 	pinMode(LED_GRN_PIN,OUTPUT);
 	pinMode(LED_BLU_PIN,OUTPUT);
+	pinMode(OTICO_D_PIN,INPUT);
+	pinMode(OTICO_E_PIN,INPUT);
 }
 
 int aciona_luz(bool r, bool g, bool b)
@@ -249,45 +251,54 @@ void balanco_preto()
 int diferenca_ldr()
 {
 	Serial.print("Difernça ldr =");
-	Serial.println(abs(ldr_esquerda-ldr_direita));
+	Serial.println(ldr_difer);
 	Serial.print("Direção =");
-	if (ldr_esquerda>ldr_direita)
+
+	if (ldr_difer < 400)
 	{
 		ldr_direcao = ESQUERDA;
 		Serial.println("Esquerda");
 	}
-	else if (ldr_esquerda<ldr_direita)
+	else if (ldr_difer > 800)
 	{
 		ldr_direcao = DIREITA;
 		Serial.println("Direita");
 	}
 	else
 	{
-		ldr_direcao = 0;
+		ldr_direcao = FRENTE;
 		Serial.println("Centro");
 	}
-	return abs(ldr_esquerda-ldr_direita);
+	return abs(600-ldr_difer);
 }
 
 int diferenca_otico()
 {
-	Serial.print("Difernça otc =");
-	Serial.println(abs(otico_esquerda-otico_direita));
+	Serial.print("E =");
+	Serial.print(otico_esquerda);
+	Serial.print("D =");
+	Serial.print(otico_direita);
 	Serial.print("Direção =");
-	if (otico_esquerda>otico_direita)
+	if (otico_esquerda<otico_direita)
 	{
 		otico_direcao = ESQUERDA;
 		Serial.println("Esquerda");
 	}
-	else if (otico_esquerda<otico_direita)
+	else if (otico_esquerda>otico_direita)
 	{
 		otico_direcao = DIREITA;
 		Serial.println("Direita");
 	}
+	else if (otico_esquerda == 0)
+	{
+		otico_cor = WHITE;
+		Serial.println("Frente");
+	}
 	else
 	{
-		otico_direcao = FRENTE;
-		Serial.println("Centro");
+		otico_cor = BLACK;
+		Serial.println("Frente");
 	}
-	return abs(otico_esquerda-otico_direita);
+
+
 }

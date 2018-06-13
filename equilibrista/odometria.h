@@ -1,8 +1,8 @@
 #include "ambiente.h"
 
 // Variveis
-Encoder encoder_D(ENCDR_D1_PIN, ENCDR_D2_PIN);
-Encoder encoder_E(ENCDR_E1_PIN, ENCDR_E2_PIN);
+RotaryEncoder encoder_D(ENCDR_D1_PIN, ENCDR_D2_PIN);
+RotaryEncoder encoder_E(ENCDR_E1_PIN, ENCDR_E2_PIN);
 
 bool mov_giro;
 bool mov_anterior;

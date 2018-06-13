@@ -140,7 +140,9 @@ void m_iniciar(int n)	// Inicia processo de movimentos
 			ligado 	= true;
 			estado_motor = 0;
 			t_motor.reset();
+			t_partida.reset();
 			estado_liga += 1;
+			luz = 0;
 		}
 		else
 		{
@@ -480,7 +482,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
-		"LDR2      |     ",
+		"LDR strt        ",
 		"LDR dir         ",
 		"R    G    B     ",
 		"LDR             ",
@@ -503,10 +505,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 
 	if (estado_menu == n+1)
 	{
-		lcd.setCursor(5,1);
-		lcd.print (ldr_esquerda);
-		lcd.setCursor(11,1);
-		lcd.print (ldr_direita);
+		lcd.print (ldr_start);
 	}
 	else if (estado_menu == n+2)
 	{

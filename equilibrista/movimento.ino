@@ -134,16 +134,37 @@ int move(entrada a)
 
 int move_auto()
 {
+	if (estado_motor > 1 && t_partida.fim())
+	{
+		return 1;
+	}
+
+	if (objeto) estado_motor = 3;
+
 	switch (estado_motor) {
-		case 0:	// Anda por 10 minutos
-		if (anda(FRENTE,T_MAX_ANDAR) == 1) return 1; // Acaba o tempo
-		else if (objeto)  			// Encontra objeto
+		case 0:	// Espera o inicio
+		if (analogRead(LDR_S_PIN) < 100)
 		{
 			estado_motor = 1;
-			estado_move = 0;
+			t_motor.reset();
+			t_partida.reset();
+			luz = 0;
 		}
 		break;
 
+		case 1: // Procura Posicao inicial
+		if (busca_luz(luz) == 1)
+		{
+			while (anda(DIREITA,t_giro_90) != 1); 	// gira 90 graus
+			estado_motor = 2;
+		}
+		break;
+
+		case 2: // Analiza cor do objeto
+
+		estado_motor = 3;
+		break;
+/*
 		case 1: // Analiza cor do objeto
 		if (anda(PARA,T_MAX_ANDAR) == 1) return 1; 	// Acaba o tempo
 		ve_cor();
@@ -216,17 +237,18 @@ int move_auto()
 		estado_motor = 0;
 		t_motor.reset();
 		break;
+		/*/
 	}
 	return 0;
 }
 
 int busca_luz(int n)
 {
-	int luz = diferenca_ldr();
+	int luzeiro = diferenca_ldr();
 	if (n == 0)
 	{
 		n += anda(ESQUERDA,4*t_giro_90); 		// gira 360 graus
-		ldr_dif_max = (ldr_dif_max>luz) ? ldr_dif_max : luz;
+		ldr_dif_max = (ldr_dif_max>luzeiro) ? ldr_dif_max : luzeiro;
 	}
 	else if (n == 1)
 	{
@@ -236,7 +258,7 @@ int busca_luz(int n)
 	else if (n == 2)
 	{
 		anda(DIREITA,4*t_giro_90);		// gira ate encontra maior luz
-		if (ldr_dif_max < luz) {
+		if (ldr_dif_max < luzeiro) {
 			aciona_motor(0,0);
 			return 1;
 		}
@@ -251,13 +273,8 @@ int linha()
 		aciona_motor(0,0);
 		return 1;
 	}
-
-	if (ldr_valor > 200)
-	{
-		otico_direcao = (otico_direcao == DIREITA)? ESQUERDA : DIREITA;
-	}
-
-
+	diferenca_otico();
+	anda(otico_direcao,t_anda);
 }
 
 int movimentos ()
@@ -289,7 +306,7 @@ int movimentos ()
 	}
 	else if (mov == 7)
 	{
-		if (busca_luz(0) == 1) 		ligado = false;
+		if (busca_luz(luz) == 1) 		ligado = false;
 	}
 	else if (mov == 8)
 	{

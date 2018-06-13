@@ -12,8 +12,8 @@ void inicia_odometro()
 
 void reset_encoders()
 {
-	encoder_D.write(0);
-	encoder_E.write(0);
+	encoder_D.setPosition(0);
+	encoder_E.setPosition(0);
 }
 void calcula_PD ()
 {

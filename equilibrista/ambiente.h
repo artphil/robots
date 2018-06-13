@@ -5,7 +5,7 @@
 
 #include <LiquidCrystal.h>
 #include <Adafruit_MotorShield.h>
-#include <Encoder.h>
+#include <RotaryEncoder.h>
 #include <EEPROM.h>
 
 #include "classes.h"
@@ -50,20 +50,21 @@ using namespace std;
 #define LED_GRN_PIN	 	25
 #define LED_BLU_PIN 	27
 
-#define OTICO_E_PIN		8
-#define OTICO_D_PIN		9
+#define OTICO_E_PIN		41
+#define OTICO_D_PIN		43
 
-#define LDR_PIN 		10
+#define LDR_PIN 		13
 
-#define LDR_E_PIN 		11
-#define LDR_D_PIN 		15
+#define LDR_S_PIN 		14
 
-#define ENCDR_E1_PIN	47
-#define ENCDR_E2_PIN	49
+#define LDR_DIF_PIN 	15
 
-#define ENCDR_D1_PIN	51
-#define ENCDR_D2_PIN	53
+#define ENCDR_E1_PIN	8
+#define ENCDR_E2_PIN	9
+
+#define ENCDR_D1_PIN	10
+#define ENCDR_D2_PIN	11
 
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180
-#define T_MAX_ANDAR		10000
+#define T_MAX_ANDAR		60000

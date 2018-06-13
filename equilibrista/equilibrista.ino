@@ -32,7 +32,7 @@ void loop()
 		Serial.print("otico E = ");
 		Serial.println(otico_esquerda);
 		Serial.println();
-		Serial.print("encoder D = ");
+		/*		Serial.print("encoder D = ");
 		Serial.println(encdr_d_valor-encdr_d_ultimo);
 		Serial.print("encoder E = ");
 		Serial.println(encdr_e_valor-encdr_e_ultimo);
@@ -41,13 +41,12 @@ void loop()
 		Serial.println(pot_motor_D);
 		Serial.print("pot E = ");
 		Serial.println(pot_motor_E);
-		Serial.println();
+		/*/		Serial.println();
 		Serial.print("ldr = ");
-		Serial.println(ldr_valor);
+		Serial.println(ldr_start);
 		Serial.println();
 	}
 }
-
 
 void atualiza () // Atualiza as constantes utilizadas
 {
@@ -55,15 +54,16 @@ void atualiza () // Atualiza as constantes utilizadas
 	carga = sensorValue * (5.0 / 1023.0);
 
 	ldr_valor = analogRead(LDR_PIN);
-	ldr_direita = analogRead(LDR_D_PIN);
-	ldr_esquerda = analogRead(LDR_E_PIN);
+	ldr_start = analogRead(LDR_S_PIN);
+	ldr_difer = analogRead(LDR_DIF_PIN);
 
-	otico_direita = analogRead(OTICO_D_PIN);
-	otico_esquerda = analogRead(OTICO_E_PIN);
+	otico_direita = digitalRead(OTICO_D_PIN);
+	otico_esquerda = digitalRead(OTICO_E_PIN);
 
-
-	encdr_e_ultimo = encoder_E.read();
-	encdr_d_ultimo = encoder_D.read();
+	encoder_E.tick();
+	encoder_D.tick();
+	encdr_e_ultimo = encoder_E.getPosition();
+	encdr_d_ultimo = encoder_D.getPosition();
 	encdr_e_valor += encdr_e_ultimo;
 	encdr_d_valor += encdr_d_ultimo;
 	reset_encoders();
