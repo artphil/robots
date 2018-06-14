@@ -503,27 +503,24 @@ void m_informacoes(int n) // Informacoes - nivel 2
 	lcd.print (subtitulo[estado_menu%10]);
 	lcd.setCursor(10,1);
 
-	if (estado_menu == n+1)
-	{
-		lcd.print (ldr_start);
-	}
-	else if (estado_menu == n+2)
-	{
-		switch (ldr_direcao)
-		{
-			case DIREITA:
-			lcd.print ("Direita");
-			break;
+	if (estado_menu == n+1)	lcd.print (ldr_start);
+	else if (estado_menu == n+2) lcd.print (ldr_difer);
+	// {
+	// 	switch (ldr_direcao)
+	// 	{
+	// 		case DIREITA:
+	// 		lcd.print ("Direita");
+	// 		break;
 
-			case ESQUERDA:
-			lcd.print ("Esquerda");
-			break;
+	// 		case ESQUERDA:
+	// 		lcd.print ("Esquerda");
+	// 		break;
 
-			default:
-			lcd.print (ldr_direcao);
-			break;
-		}
-	}
+	// 		default:
+	// 		lcd.print (ldr_direcao);
+	// 		break;
+	// 	}
+	// }
 	else if (estado_menu == n+3)
 	{
 		lcd.setCursor(2,1);

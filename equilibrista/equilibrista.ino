@@ -22,7 +22,7 @@ void loop()
 	atualiza();
 	menu();
 	movimentos();
-	corretor();
+	// corretor();
 
 	if (t.fim())
 	{
@@ -45,32 +45,9 @@ void loop()
 		Serial.println(pot_motor_E);
 		/*/		Serial.println();
 		Serial.print("ldr = ");
-		Serial.println(ldr_start);
+		Serial.println(ldr_difer);
+		Serial.println(diferenca_ldr());
 		Serial.println();
 	}
 }
 
-void atualiza () // Atualiza as constantes utilizadas
-{
-	int sensorValue = analogRead(A0);
-	carga = sensorValue * (5.0 / 1023.0);
-
-	ldr_valor = analogRead(LDR_PIN);
-	ldr_start = analogRead(LDR_S_PIN);
-	ldr_difer = analogRead(LDR_DIF_PIN);
-
-	otico_direita = digitalRead(OTICO_D_PIN);
-	otico_esquerda = digitalRead(OTICO_E_PIN);
-
-	encoder_E.tick();
-	encoder_D.tick();
-	encdr_e_ultimo = encoder_E.getPosition();
-	encdr_d_ultimo = encoder_D.getPosition();
-	encdr_e_valor += encdr_e_ultimo;
-	encdr_d_valor += encdr_d_ultimo;
-	reset_encoders();
-
-	objeto = ve_objeto();
-
-	botao = 0;
-}

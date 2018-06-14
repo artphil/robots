@@ -12,7 +12,7 @@ void inicia_motor() // Inicializa as vatiaveis
 	anda_fat  	= 1670;
 	t_anda  	= anda_cm*anda_fat; // 50100
 	t_anda_raiz = sqrt(t_anda);
-	t_giro_90  	= 2400;
+	t_giro_90  	= 900;
 	t_giro_45   = t_giro_90/2;
 	ligado = false;
 	AFMS.begin(); // create with the default frequency 1.6KHz
@@ -169,24 +169,31 @@ int move(entrada a)
 int move_auto()
 {
 	int dir_rand;
-	if (estado_motor > 1 && t_partida.fim())
+	/*if (estado_motor > 1 && t_partida.fim())
 	{
 		return 1;
-	}
+	}*/
 
 	if (objeto) estado_motor = 3;
 
 	switch (estado_motor) {
 		case 0:	// Espera o inicio
+		lcd.setCursor(0,1);
+		lcd.print ("estado 0");
+
 		if (analogRead(LDR_S_PIN) < 100)
 		{
 			estado_motor = 1;
 			t_partida.reset();
+			t_motor.reset();
 			luz = 0;
 		}
 		break;
 
 		case 1: // Procura Posicao inicial
+		lcd.setCursor(0,1);
+		lcd.print ("estado 1");
+
 		if (busca_luz(luz) == 1)
 		{
 			dir_rand = i_rand(1,2);
@@ -197,6 +204,8 @@ int move_auto()
 		break;
 
 		case 2: // Anda sobre a linha
+		lcd.setCursor(0,1);
+		lcd.print ("estado 2");
 		linha();
 		if (otico_cor != otico_cor_ultima)
 		{
@@ -215,6 +224,8 @@ int move_auto()
 		break;
 
 		case 3: // Analiza cor do objeto
+		lcd.setCursor(0,1);
+		lcd.print ("estado 3");
 		anda(PARA);
 		ve_cor();
 		if (cor == BLACK)
@@ -286,22 +297,38 @@ int move_auto()
 
 int busca_luz(int n)
 {
+	atualiza();
 	int luzeiro = diferenca_ldr();
 	if (n == 0)
 	{
-		n += anda(ESQUERDA,4*t_giro_90); 		// gira 360 graus
-		ldr_dif_max = (ldr_dif_max>luzeiro) ? ldr_dif_max : luzeiro;
+		t_motor.reset();
+		n = 4;
+		ldr_dif_max = 0;
 	}
-	else if (n == 1)
+	if (n == 1)
 	{
-		ldr_dif_max -= 10;
-		n++;
+		if (t_motor.get_seg() > 2) n = 2; 		// gira 360 graus
+		aciona_motor(1,-1);
+		// if (anda(ESQUERDA,t_giro_90) == 1) n = 2; 		// gira 360 graus
+		ldr_dif_max = (ldr_dif_max>luzeiro) ? ldr_dif_max : luzeiro;
 	}
 	else if (n == 2)
 	{
+		t_motor.reset();
+		//  anda(PARA);
+		 aciona_motor(0,0);
+		n = 3;
+	}
+	else if (n == 3)
+	{
+		ldr_dif_max -= 60;
+		n = 4;
+	}
+	else if (n == 4)
+	{
 		anda(DIREITA);		// gira ate encontra maior luz
-		if (ldr_dif_max < luzeiro) {
-			anda(PARA);		// gira ate encontra maior luz
+		if (/*ldr_dif_max < luzeiro ||*/ luzeiro > 300) {
+			aciona_motor(0,0);		// gira ate encontra maior luz
 			return 1;
 		}
 	}
@@ -315,8 +342,17 @@ int linha()
 		aciona_motor(0,0);
 		return 1;
 	}
+	atualiza();
 	diferenca_otico();
-	anda(otico_direcao,t_anda);
+	// anda(otico_direcao);
+	int e=digitalRead(OTICO_E_PIN);
+	int d=digitalRead(OTICO_D_PIN);
+	if (e == d ) 
+	{
+		aciona_motor(1,1);
+	}
+	else if (e == 1) aciona_motor(1,-1);
+	else if (d == 1) aciona_motor(-1,1);
 }
 
 int movimentos ()

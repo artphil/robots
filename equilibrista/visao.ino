@@ -253,7 +253,7 @@ int diferenca_ldr()
 	Serial.print("Difernça ldr =");
 	Serial.println(ldr_difer);
 	Serial.print("Direção =");
-
+	
 	if (ldr_difer < 500)
 	{
 		ldr_direcao = ESQUERDA;
@@ -269,7 +269,7 @@ int diferenca_ldr()
 		ldr_direcao = FRENTE;
 		Serial.println("Centro");
 	}
-	return abs(600-ldr_difer);
+	return abs(500-ldr_difer);
 }
 
 int diferenca_otico()
