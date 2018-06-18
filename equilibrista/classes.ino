@@ -12,7 +12,7 @@ int entrada::get_tam()
 void entrada::reset()
 { i = 0; }
 
-void entrada::set(int d, int t)
+void entrada::set(int d, unsigned long t)
 {
 	if (i < 50)
 	{
@@ -28,7 +28,7 @@ int entrada::get_dir(int n)
 	return direcao[n];
 }
 
-int entrada::get_tmp(int n)
+unsigned long entrada::get_tmp(int n)
 {
 	if (n >= tam) return -1;
 	return tempo[n];
@@ -63,7 +63,7 @@ void conta_tempo::reset()
 	tmp = millis();
 }
 
-void conta_tempo::set_max(long t)
+void conta_tempo::set_max(unsigned long t)
 {
 	t_max = t;
 }

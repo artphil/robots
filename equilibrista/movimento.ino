@@ -9,10 +9,11 @@ void inicia_motor() // Inicializa as vatiaveis
 	pot_motor_D = 150;
 	pot_motor_E = 150;
 	anda_cm  	= 30;
-	anda_fat  	= 1670;
+	anda_fat  	= 100;
 	t_anda  	= anda_cm*anda_fat; // 50100
 	t_anda_raiz = sqrt(t_anda);
-	t_giro_90  	= 900;
+	t_anda_re	= 400;
+	t_giro_90  	= 950;
 	t_giro_45   = t_giro_90/2;
 	ligado = false;
 	AFMS.begin(); // create with the default frequency 1.6KHz
@@ -55,14 +56,14 @@ void aciona_motor (int m1, int m2)
 	}
 }
 
-int anda(int direcao, int tmp_acao)
+int anda(int direcao, unsigned long tmp_acao)
 {
 	// Serial.print("Direcao: ");
 	// Serial.println(direcao);
 	// Serial.print("Tempo: ");
 	// Serial.println(tmp_acao);
 
-	t_motor.set_max(tmp_acao);
+	// t_motor.set_max(tmp_acao);
 
 	if (t_motor.get_milis() < tmp_acao)
 	{
@@ -100,8 +101,8 @@ int anda(int direcao, int tmp_acao)
 			return 1;
 		}
 
-		lcd.setCursor(12,1);
-		lcd.print (t_motor.get_seg());
+		// lcd.setCursor(12,1);
+		// lcd.print (t_motor.get_seg());
 	}
 	else
 	{
@@ -169,12 +170,26 @@ int move(entrada a)
 int move_auto()
 {
 	int dir_rand;
-	/*if (estado_motor > 1 && t_partida.fim())
-	{
-		return 1;
-	}*/
 
-	if (objeto) estado_motor = 3;
+	lcd.setCursor(10,1);
+	lcd.print (t_partida.get_seg());
+	lcd.setCursor(15,1);
+	lcd.print (t_motor.get_seg());
+
+	if (verifica_botao() == SELECIONA)
+	{
+		aciona_motor(0,0);
+
+		return 1;
+	}
+
+	if (t_partida.get_milis()>T_MAX_ANDAR) {
+		aciona_motor(0, 0);
+		motor_F->run(RELEASE);
+		return 1;
+	}
+
+	if (estado_motor > 1 && objeto) estado_motor = 3;
 
 	switch (estado_motor) {
 		case 0:	// Espera o inicio
@@ -196,30 +211,39 @@ int move_auto()
 
 		if (busca_luz(luz) == 1)
 		{
+			ldr_direcao_base = ldr_direcao;
+			ldr_direcao_base = ldr_dif_max;
 			dir_rand = i_rand(1,2);
 			t_motor.reset();
-			while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
+			while (anda(dir_rand,2*t_giro_90) != 1); 	// gira 90 graus
 			estado_motor = 2;
 		}
 		break;
 
 		case 2: // Anda sobre a linha
+
 		lcd.setCursor(0,1);
 		lcd.print ("estado 2");
+		// delay(1000);
+		atualiza();
+
 		linha();
-		if (otico_cor != otico_cor_ultima)
+
+		if (otico_cor != otico_cor_ultima && false)
 		{
 			otico_cor_ultima = otico_cor;
 
 			if (otico_cor == WHITE)
 			{
 				dir_rand = i_rand(1,2);
-				t_motor.reset();
-				while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
+				// t_motor.reset();
+				// while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
+				delay(5);
 				t_motor.reset();
 				while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
 			}
 		}
+
 		// estado_motor = 3;
 		break;
 
@@ -240,13 +264,53 @@ int move_auto()
 		{
 			dir_rand = i_rand(1,2);
 			t_motor.reset();
-			while (anda(dir_rand,t_giro_90) != 1); 	// gira 90 graus
+			while (anda(TRAS,t_anda_re) != 1); 		// anda para tras
+			t_motor.reset();
+			while (anda(dir_rand,2*t_giro_90) != 1); 	// gira 90 graus
 		}
 		else
 		{
 			t_motor.reset();
+			anda(FRENTE, t_anda_re);
+			motor_F->setSpeed(150);
+			motor_F->run(FORWARD);
+			delay(2);
+			motor_F->run(RELEASE);
+
+			luz = 0;
 			while (busca_luz(luz) != 1);
-			// while ();
+			if (ldr_direcao == ldr_direcao_base)
+			{
+				while (diferenca_ldr() < ldr_dif_max_base ) anda(FRENTE);
+
+			}
+			else
+			{
+				t_motor.reset();
+				while (anda(dir_rand,2*t_giro_90) != 1);
+
+				int difer = diferenca_ldr();
+				int dirr;
+
+				while (diferenca_ldr() < ldr_dif_max_base ) {
+					atualiza();
+					if (diferenca_ldr() >= difer) difer = diferenca_ldr();
+					else
+					{
+						dirr = (dirr == 1)? 2:1;
+						t_motor.reset();
+						anda(dirr, t_anda_re);
+					}
+					anda(FRENTE);
+				}
+			}
+			motor_F->setSpeed(150);
+			motor_F->run(BACKWARD);
+			delay(5);
+			motor_F->run(RELEASE);
+			t_motor.reset();
+			while (anda(TRAS,t_anda_re) != 1);
+
 		}
 		estado_motor = 2;
 		break;
@@ -299,37 +363,45 @@ int busca_luz(int n)
 {
 	atualiza();
 	int luzeiro = diferenca_ldr();
-	if (n == 0)
+
+	if (luz == 0)
 	{
-		t_motor.reset();
-		n = 4;
+		luz = 1;
 		ldr_dif_max = 0;
+		t_move.reset();
 	}
-	if (n == 1)
+	else if (luz == 1)
 	{
-		if (t_motor.get_seg() > 2) n = 2; 		// gira 360 graus
-		aciona_motor(1,-1);
-		// if (anda(ESQUERDA,t_giro_90) == 1) n = 2; 		// gira 360 graus
+		if (t_move.get_milis() > 5*t_giro_90) luz = 2; 		// gira 360 graus
+		// aciona_motor(1,-1);
+		// if (anda(ESQUERDA,4*t_giro_90) == 1) n = 2; 		// gira 360 graus
+		anda(ESQUERDA); 		// gira 360 graus
 		ldr_dif_max = (ldr_dif_max>luzeiro) ? ldr_dif_max : luzeiro;
 	}
-	else if (n == 2)
+	else if (luz == 2)
 	{
-		t_motor.reset();
-		//  anda(PARA);
-		 aciona_motor(0,0);
-		n = 3;
+		t_move.reset();
+		while (!t_move.fim()) anda(PARA);
+		// aciona_motor(0,0);
+		luz = 3;
 	}
-	else if (n == 3)
+	else if (luz == 3)
 	{
 		ldr_dif_max -= 60;
-		n = 4;
+		luz = 4;
 	}
 	else if (n == 4)
 	{
 		anda(DIREITA);		// gira ate encontra maior luz
-		if (/*ldr_dif_max < luzeiro ||*/ luzeiro > 300) {
-			aciona_motor(0,0);		// gira ate encontra maior luz
+		if (ldr_dif_max < luzeiro);// || luzeiro > 300)
+		{
+			// aciona_motor(0,0);
+			// gira ate encontra maior luz
+			aciona_motor(0, 0);
+			t_move.reset();
+			while (!t_move.fim());
 			return 1;
+			luz = 5;
 		}
 	}
 	return 0;
@@ -337,6 +409,8 @@ int busca_luz(int n)
 
 int linha()
 {
+	int dir_rand;
+
 	if (verifica_botao() == SELECIONA)
 	{
 		aciona_motor(0,0);
@@ -345,19 +419,37 @@ int linha()
 	atualiza();
 	diferenca_otico();
 	// anda(otico_direcao);
-	int e=digitalRead(OTICO_E_PIN);
-	int d=digitalRead(OTICO_D_PIN);
-	if (e == d ) 
+	// int e=digitalRead(OTICO_E_PIN);
+	// int d=digitalRead(OTICO_D_PIN);
+
+
+	if (otico_direita == otico_esquerda )
 	{
 		aciona_motor(1,1);
 	}
-	else if (e == 1) aciona_motor(1,-1);
-	else if (d == 1) aciona_motor(-1,1);
+	else if (otico_esquerda == 1) {
+		aciona_motor(1,0);
+		// delay(5);
+		// aciona_motor(1,1);
+	}
+	else if (otico_direita == 1) {
+		aciona_motor(0,1);
+		// delay(5);
+		// aciona_motor(1,1);
+	}
 }
 
 int movimentos ()
 {
 	if (!ligado || mov == 0) return 0;
+
+	if (verifica_botao() == SELECIONA)
+	{
+		aciona_motor(0,0);
+		ligado = false;
+		return 1;
+	}
+
 	if (mov == 1)
 	{
 		if (move_auto() == 1) 		ligado = false;
@@ -396,14 +488,14 @@ void 	e_teste()
 {
 	seq_mov.set_tam(8);
 	seq_mov.reset();
-	seq_mov.set( FRENTE,   t_teste );
-	seq_mov.set( PARA, 	 t_teste );
-	seq_mov.set( TRAS,     t_teste );
-	seq_mov.set( PARA,   	 t_teste );
-	seq_mov.set( DIREITA,  t_teste );
-	seq_mov.set( PARA,   	 t_teste );
-	seq_mov.set( ESQUERDA, t_teste );
-	seq_mov.set( PARA,   	 t_teste );
+	seq_mov.set( FRENTE,  t_teste );
+	seq_mov.set( PARA, 	  t_teste );
+	seq_mov.set( TRAS,    t_teste );
+	seq_mov.set( PARA,    t_teste );
+	seq_mov.set( DIREITA, t_teste );
+	seq_mov.set( PARA,    t_teste );
+	seq_mov.set( ESQUERDA,t_teste );
+	seq_mov.set( PARA,    t_teste );
 	seq_mov.print();
 }
 
@@ -429,7 +521,7 @@ void 	e_triangulo()
 	seq_mov.set( FRENTE,  t_anda );
 	seq_mov.set( DIREITA, t_giro_90 );
 	seq_mov.set( DIREITA, t_giro_45 );
-	seq_mov.set( FRENTE,  t_anda_raiz);
+	seq_mov.set( FRENTE,  t_anda_raiz );
 	seq_mov.set( DIREITA, t_giro_90 );
 	seq_mov.set( DIREITA, t_giro_45 );
 	seq_mov.print();

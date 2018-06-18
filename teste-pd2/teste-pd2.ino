@@ -1,8 +1,9 @@
 #include <RotaryEncoder.h>
 
-RotaryEncoder encoder(A8, A9);
-int ent_um = A8;
-int ent_dois = A9;
+RotaryEncoder encoder1(A8, A9);
+RotaryEncoder encoder2(A10, A11);
+int ent_um = A10;
+int ent_dois = A11;
 
 void setup()
 {
@@ -13,8 +14,10 @@ void setup()
 
 void loop()
 {
-	encoder.tick();
+	encoder1.tick();
+	encoder2.tick();
 
-	Serial.print(encoder.getPosition());
+	Serial.println(encoder1.getPosition());
+	Serial.println(encoder2.getPosition());
 	Serial.println();
 }

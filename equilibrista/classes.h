@@ -5,14 +5,14 @@ class entrada
 	int tam = 50;
 	int i;
 	int direcao[50];
-	int tempo[50];
+	unsigned long tempo[50];
 public:
 	void set_tam(int);
 	int  get_tam();
 	void reset();
-	void set(int,int);
+	void set(int,unsigned long);
 	int  get_dir(int);
-	int  get_tmp(int);
+	unsigned long  get_tmp(int);
 	void print();
 };
 
@@ -24,7 +24,7 @@ public:
 	conta_tempo(int max);
 	bool fim();
 	void reset();
-	void set_max(long);
+	void set_max(unsigned long);
 	int get_milis();
 	int get_seg();
 	void print();

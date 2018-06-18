@@ -11,10 +11,12 @@ int encdr_d_valor;
 int encdr_e_ultimo;
 int encdr_d_ultimo;
 int esperado;
-int ultimo_erro;
+int ultimo_erro_e=0;
+int ultimo_erro_d=0;
 float KP;
 float KD;
-conta_tempo t_pd(50);
+int t_correc=500;
+conta_tempo t_pd(t_correc);
 
 // Funcoes
 void 	inicia_odometro();

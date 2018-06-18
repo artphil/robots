@@ -5,7 +5,7 @@
 void inicia_sensor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	ldr_limiar   = 170;
+	ldr_limiar   = 150;
 	ldr_cor[RED]	= 0.0;
 	ldr_cor[GREEN]  = 0.0;
 	ldr_cor[BLUE]	= 0.0;
@@ -15,6 +15,7 @@ void inicia_sensor() // Inicializa as vatiaveis
 	led_atual[1] = false;
 	led_atual[2] = false;
 	otico_direcao = FRENTE;
+	otico_cor_ultima = WHITE;
 	pinMode(LED_RED_PIN,OUTPUT);
 	pinMode(LED_GRN_PIN,OUTPUT);
 	pinMode(LED_BLU_PIN,OUTPUT);
@@ -253,7 +254,7 @@ int diferenca_ldr()
 	Serial.print("Difernça ldr =");
 	Serial.println(ldr_difer);
 	Serial.print("Direção =");
-	
+
 	if (ldr_difer < 500)
 	{
 		ldr_direcao = ESQUERDA;

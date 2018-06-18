@@ -45,25 +45,26 @@ using namespace std;
 // Identificacao dos pinos utilizados
 #define MOTOR_E_PIN 	1
 #define MOTOR_D_PIN 	3
+#define MOTOR_F_PIN 	4
 
 #define LED_RED_PIN 	23
 #define LED_GRN_PIN	 	25
 #define LED_BLU_PIN 	27
 
 #define OTICO_E_PIN		41
-#define OTICO_D_PIN		43
+#define OTICO_D_PIN		45
 
-#define LDR_PIN 		13
+#define LDR_PIN 		12
 
 #define LDR_S_PIN 		14
 
 #define LDR_DIF_PIN 	15
 
-#define ENCDR_E1_PIN	8
-#define ENCDR_E2_PIN	9
+#define ENCDR_E1_PIN	A8
+#define ENCDR_E2_PIN	A9
 
-#define ENCDR_D1_PIN	10
-#define ENCDR_D2_PIN	11
+#define ENCDR_D1_PIN	A10
+#define ENCDR_D2_PIN	A11
 
 // Definicoes das constantes de tempo
 #define T_MAX_MENU 		180

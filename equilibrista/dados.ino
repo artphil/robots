@@ -76,9 +76,9 @@ void atualiza () // Atualiza as constantes utilizadas
 	encoder_D.tick();
 	encdr_e_ultimo = encoder_E.getPosition();
 	encdr_d_ultimo = encoder_D.getPosition();
-	encdr_e_valor += encdr_e_ultimo;
-	encdr_d_valor += encdr_d_ultimo;
-	reset_encoders();
+	// encdr_e_valor += encdr_e_ultimo;
+	// encdr_d_valor += encdr_d_ultimo;
+	// reset_encoders();
 
 	objeto = ve_objeto();
 

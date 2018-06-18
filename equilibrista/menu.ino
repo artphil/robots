@@ -18,7 +18,6 @@ void inicia_menu() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
 	estado_menu = 0;
-	estado_menu = 0;
 	lcd.begin(16, 2);
 }
 
