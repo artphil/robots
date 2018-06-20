@@ -10,7 +10,7 @@ void setup()
 	inicia_motor();
 	inicia_sensor();
 	// inicia_entradas();
-	inicia_odometro();
+	// inicia_odometro();
 }
 int num=1;
 conta_tempo t(2000);
@@ -29,23 +29,23 @@ void loop()
 		// t.print();
 		// (i_rand(3,7));//
 		t.reset();
-		Serial.print("otico D = ");
-		Serial.println(otico_direita);
-		Serial.print("otico E = ");
-		Serial.println(otico_esquerda);
-		Serial.println();
+		// Serial.print("otico D = ");
+		// Serial.println(otico_direita);
+		// Serial.print("otico E = ");
+		// Serial.println(otico_esquerda);
+		// Serial.println();
 		/**/
-		Serial.print("encoder D = ");
-		Serial.println(encdr_d_ultimo);
-		Serial.print("encoder E = ");
-		Serial.println(encdr_e_ultimo);
-		Serial.println();
-		Serial.print("pot D = ");
-		Serial.println(pot_motor_D);
-		Serial.print("pot E = ");
-		Serial.println(pot_motor_E);
-		Serial.println();
-		/*/
+		// Serial.print("encoder D = ");
+		// Serial.println(encdr_d_ultimo);
+		// Serial.print("encoder E = ");
+		// Serial.println(encdr_e_ultimo);
+		// Serial.println();
+		// Serial.print("pot D = ");
+		// Serial.println(pot_motor_D);
+		// Serial.print("pot E = ");
+		// Serial.println(pot_motor_E);
+		// Serial.println();
+		/**/
 		Serial.print("ldr = ");
 		Serial.println(ldr_difer);
 		Serial.println(diferenca_ldr());
@@ -56,5 +56,10 @@ void loop()
 		Serial.println(num);
 		Serial.println(anda_fat);
 		/**/
+		Serial.print("ldr D = ");
+		Serial.println(analogRead(LDR_DIR_PIN));
+		Serial.print("ldr E = ");
+		Serial.println(analogRead(LDR_ESQ_PIN));
+		Serial.println();
 	}
 }

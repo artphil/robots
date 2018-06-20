@@ -54,11 +54,14 @@ using namespace std;
 #define OTICO_E_PIN		41
 #define OTICO_D_PIN		45
 
-#define LDR_PIN 		12
+#define LDR_PIN 		A12
 
-#define LDR_S_PIN 		14
+#define LDR_S_PIN 		A14
 
-#define LDR_DIF_PIN 	15
+#define LDR_DIF_PIN 	A15
+
+#define LDR_DIR_PIN 	A10
+#define LDR_ESQ_PIN 	A8
 
 #define ENCDR_E1_PIN	A8
 #define ENCDR_E2_PIN	A9
@@ -72,3 +75,5 @@ using namespace std;
 
 // funcoes
 #define i_rand(a,b)		a+(rand()%(b-a+1))
+
+// typedef unsigned long unsigned long;

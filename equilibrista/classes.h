@@ -1,3 +1,4 @@
+#include "ambiente.h"
 /* classes */
 
 class entrada
@@ -6,6 +7,7 @@ class entrada
 	int i;
 	int direcao[50];
 	unsigned long tempo[50];
+	// unsigned long tempo[50];
 public:
 	void set_tam(int);
 	int  get_tam();

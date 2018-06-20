@@ -5,7 +5,7 @@
 void inicia_sensor() // Inicializa as vatiaveis
 {
 	// Parametros iniciais
-	ldr_limiar   = 150;
+	ldr_limiar   = 50;
 	ldr_cor[RED]	= 0.0;
 	ldr_cor[GREEN]  = 0.0;
 	ldr_cor[BLUE]	= 0.0;
@@ -173,7 +173,7 @@ void ve_cor()
 	lcd.print (nome_cor[cor]);
 	Serial.println(nome_cor[cor]);
 
-	// delay(1000);
+	delay(1000);
 }
 
 void balanco_branco()

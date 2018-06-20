@@ -563,7 +563,7 @@ void m_informacoes(int n) // Informacoes - nivel 2
 void m_testes(int n) // Testes - nivel 2
 {
 	String titulo = "     TESTES     ";
-	int ns = 5;
+	int ns = 6;
 	String subtitulo[ns] =
 	{
 		"Voltar          ",
@@ -571,6 +571,7 @@ void m_testes(int n) // Testes - nivel 2
 		"F     Anda     T",
 		"E     Gira     D",
 		"Motores auto    ",
+		"E     BRACO    D",
 	};
 
 	if (t_menu.fim())
@@ -615,6 +616,23 @@ void m_testes(int n) // Testes - nivel 2
 
 			case 2:
 			aciona_motor(-1, 1);
+			break;
+		}
+	}
+	else if (estado_menu == n+5)
+	{
+		switch (tst)
+		{
+			case 0:
+			aciona_motor_F(0);
+			break;
+
+			case 1:
+			aciona_motor_F(1);
+			break;
+
+			case 2:
+			aciona_motor_F(-1);
 			break;
 		}
 	}
@@ -684,6 +702,10 @@ void m_testes(int n) // Testes - nivel 2
 		{
 			tst = 1;
 		}
+		else if (estado_menu == n+5)
+		{
+			tst = 1;
+		}
 		else if (estado_menu == n+4)
 		{
 			if (led < 4) led++;
@@ -699,6 +721,10 @@ void m_testes(int n) // Testes - nivel 2
 			tst = 2;
 		}
 		else if (estado_menu == n+3)
+		{
+			tst = 2;
+		}
+		else if (estado_menu == n+5)
 		{
 			tst = 2;
 		}
@@ -718,6 +744,10 @@ void m_testes(int n) // Testes - nivel 2
 			tst = 0;
 		}
 		else if (estado_menu == n+3)
+		{
+			tst = 0;
+		}
+		else if (estado_menu == n+5)
 		{
 			tst = 0;
 		}

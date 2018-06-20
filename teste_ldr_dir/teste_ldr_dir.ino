@@ -11,5 +11,5 @@ void setup()
 
 void loop()
 {
- Serial.println(analogRead(0));
+ Serial.println(analogRead(A1));
 }

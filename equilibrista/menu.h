@@ -39,11 +39,11 @@ SUMARIO do MENU
 --|- Quadrado
 --|- Giro 90
 --|- Busca Luz (Aponta para a direcao com maior intencidade de luz)
+--|- Segue Linha
 - Creditos
 --|- Arthur P Silva
 --|- Bernardo Sanches
 --|- Gustavo Campos
-// Variaveis
 --|- Matheus Santos
 --------------------------------------------*/
 

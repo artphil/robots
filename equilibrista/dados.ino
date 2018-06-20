@@ -60,7 +60,7 @@ void le_EEPROM ()
 	}
 }
 
-void atualiza () // Atualiza as constantes utilizadas
+void atualiza() // Atualiza as constantes utilizadas
 {
 	int sensorValue = analogRead(A0);
 	carga = sensorValue * (5.0 / 1023.0);
@@ -72,11 +72,11 @@ void atualiza () // Atualiza as constantes utilizadas
 	otico_direita = digitalRead(OTICO_D_PIN);
 	otico_esquerda = digitalRead(OTICO_E_PIN);
 
-	encoder_E.tick();
-	encoder_D.tick();
-	encdr_e_ultimo = encoder_E.getPosition();
-	encdr_d_ultimo = encoder_D.getPosition();
-	// encdr_e_valor += encdr_e_ultimo;
+	// encoder_E.tick();
+	// encoder_D.tick();
+	// encdr_e_ultimo = encoder_E.getPosition();
+	// encdr_d_ultimo = encoder_D.getPosition();
+	// // encdr_e_valor += encdr_e_ultimo;
 	// encdr_d_valor += encdr_d_ultimo;
 	// reset_encoders();
 

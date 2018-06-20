@@ -27,7 +27,7 @@ int 	ldr_direcao;	// Direcao da maior intencidade de luz
 int 	ldr_direcao_base;	// Direcao da maior intencidade de luz
 int 	ldr_dif_max;	// Direcao da maior intencidade de luz
 int 	ldr_dif_max_base;	// Direcao da maior intencidade de luz
-int 	luz;
+int 	luz=0;
 
 int 	otico_direita;	// Intencidade de luz captada no otico direito
 int 	otico_esquerda;	// Intencidade de luz captada no otico esquerdo
