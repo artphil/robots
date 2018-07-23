@@ -19,6 +19,7 @@ int 	ldr_preto[3];	// Taxa de reflexao de cor (Red Green Blue)
 int 	ldr_valor;		// Intencidade de luz captada
 int 	ldr_limiar;		// Valor limite para ver objeto
 bool	objeto;			// Informa se tem algo na frente do robo
+bool	vazio = true;			// Informa se tem algo na frente do robo
 
 int 	ldr_start;		// Intencidade de luz captada
 

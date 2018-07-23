@@ -326,6 +326,7 @@ int move_auto()
 			aciona_motor_F(1);
 			delay(10);
 			aciona_motor_F(0);
+			vazio = false;
 
 			luz = 0;
 			while (busca_luz(luz) != 1);

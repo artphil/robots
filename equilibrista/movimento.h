@@ -13,7 +13,7 @@ int 	pot_motor_D;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_E;	// Forca de Trabalho (aplicada no motor)
 int 	pot_motor_F;	// Forca de Trabalho (aplicada no motor)
 int 	mov;			// Movimento a ser efetuado;
-int 	lim_parede = 500;
+int 	lim_parede = 300;
 bool	ligado;			// Informa se o robo esta funcionando;
 unsigned long	t_giro_45;
 unsigned long	t_giro_90;
